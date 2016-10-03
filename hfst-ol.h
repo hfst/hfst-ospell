@@ -64,15 +64,15 @@ const TransitionTableIndex TARGET_TABLE = 2147483648u;
 
 // the flag diacritic operators as given in
 // Beesley & Karttunen, Finite State Morphology (U of C Press 2003)
-enum FlagDiacriticOperator {P, N, R, D, C, U};
+enum FlagDiacriticOperator { P, N, R, D, C, U };
 
-enum HeaderFlag {Weighted, Deterministic, Input_deterministic, Minimized,
-                 Cyclic, Has_epsilon_epsilon_transitions,
-                 Has_input_epsilon_transitions, Has_input_epsilon_cycles,
-                 Has_unweighted_input_epsilon_cycles};
+enum HeaderFlag { Weighted, Deterministic, Input_deterministic, Minimized,
+                  Cyclic, Has_epsilon_epsilon_transitions,
+                  Has_input_epsilon_transitions, Has_input_epsilon_cycles,
+                  Has_unweighted_input_epsilon_cycles };
 
 // Utility function for dealing with raw memory
-void skip_c_string(char ** raw);
+void skip_c_string(char** raw);
 
 //! Internal class for Transducer processing.
 
@@ -97,19 +97,19 @@ private:
     bool has_input_epsilon_transitions;
     bool has_input_epsilon_cycles;
     bool has_unweighted_input_epsilon_cycles;
-    void read_property(bool &property, FILE * f);
-    void read_property(bool &property, char ** raw);
-    void skip_hfst3_header(FILE * f);
-    void skip_hfst3_header(char ** f);
+    void read_property(bool &property, FILE* f);
+    void read_property(bool &property, char** raw);
+    void skip_hfst3_header(FILE* f);
+    void skip_hfst3_header(char** f);
 
 public:
     //!
     //! @brief read header from file @a f
-    TransducerHeader(FILE * f);
+    TransducerHeader(FILE* f);
 
     //!
     //! read header from raw memory data @a raw
-    TransducerHeader(char ** raw);
+    TransducerHeader(char** raw);
     //!
     //! count symbols
     SymbolNumber symbol_count(void);
@@ -137,27 +137,31 @@ private:
     const SymbolNumber feature;
     const ValueNumber value;
 public:
-    //! 
+    //!
     //! Construct flag diacritic of from \@ @a op . @a feat . @a val \@.
     FlagDiacriticOperation(const FlagDiacriticOperator op,
                            const SymbolNumber feat,
-                           const ValueNumber val):
-        operation(op), feature(feat), value(val) {}
+                           const ValueNumber val) :
+        operation(op), feature(feat), value(val)
+    {
+    }
 
     // dummy constructor
-    FlagDiacriticOperation():
-        operation(P), feature(NO_SYMBOL), value(0) {}
-  
+    FlagDiacriticOperation() :
+        operation(P), feature(NO_SYMBOL), value(0)
+    {
+    }
+
     //!
     //! check if flag
     bool isFlag(void) const;
     //!
     //! Operation something I don't understand really.
     FlagDiacriticOperator Operation(void) const;
-    //! 
+    //!
     //! No clue
     SymbolNumber Feature(void) const;
-    //! 
+    //!
     //! Not a slightest idea
     ValueNumber Value(void) const;
 
@@ -176,31 +180,31 @@ private:
     SymbolNumber flag_state_size;
     SymbolNumber orig_symbol_count;
     StringSymbolMap string_to_symbol;
-    void process_symbol(char * line);
-    
-    void read(FILE * f, SymbolNumber number_of_symbols);
-    void read(char ** raw, SymbolNumber number_of_symbols);
-    
+    void process_symbol(char* line);
+
+    void read(FILE* f, SymbolNumber number_of_symbols);
+    void read(char** raw, SymbolNumber number_of_symbols);
+
 public:
-    //! 
+    //!
     //! read alphabets from file @a f
-    TransducerAlphabet(FILE *f, SymbolNumber number_of_symbols);
-    //! 
+    TransducerAlphabet(FILE* f, SymbolNumber number_of_symbols);
+    //!
     //! read alphabes from raw data @a raw
-    TransducerAlphabet(char ** raw, SymbolNumber number_of_symbols);
-    
+    TransducerAlphabet(char** raw, SymbolNumber number_of_symbols);
+
     void add_symbol(std::string & sym);
-    void add_symbol(char * sym);
+    void add_symbol(char* sym);
     //!
     //! get alphabet's keytable mapping
-    KeyTable * get_key_table(void);
-    //! 
+    KeyTable* get_key_table(void);
+    //!
     //! get flag operation map stuff
-    OperationMap * get_operation_map(void);
+    OperationMap* get_operation_map(void);
     //!
     //! get state's size
     SymbolNumber get_state_size(void);
-    //! 
+    //!
     //! get position of unknown symbol
     SymbolNumber get_unknown(void) const;
     SymbolNumber get_identity(void) const;
@@ -208,9 +212,9 @@ public:
     SymbolNumber get_orig_symbol_count(void) const;
     //!
     //! get mapping from strings to symbols
-    StringSymbolMap * get_string_to_symbol(void);
+    StringSymbolMap* get_string_to_symbol(void);
     bool has_string(std::string const & s) const;
-    //! 
+    //!
     //! get if given symbol is a flag
     bool is_flag(SymbolNumber symbol);
 };
@@ -228,16 +232,17 @@ private:
     SymbolVector symbols;
 
 public:
-    LetterTrie(void):
-    letters(UCHAR_MAX, static_cast<LetterTrie*>(NULL)),
-    symbols(UCHAR_MAX,NO_SYMBOL)
-        {}
-    //! 
+    LetterTrie(void) :
+        letters(UCHAR_MAX, static_cast<LetterTrie*>(NULL)),
+        symbols(UCHAR_MAX, NO_SYMBOL)
+    {
+    }
+    //!
     //! add a string to alphabets with a key
-    void add_string(const char * p,SymbolNumber symbol_key);
+    void add_string(const char* p, SymbolNumber symbol_key);
     //!
     //! find a key for string or add it
-    SymbolNumber find_key(char ** p);
+    SymbolNumber find_key(char** p);
     ~LetterTrie();
 };
 
@@ -250,14 +255,14 @@ private:
     LetterTrie letters;
     SymbolVector ascii_symbols;
 
-    void read_input_symbols(KeyTable * kt, SymbolNumber number_of_input_symbols);
+    void read_input_symbols(KeyTable* kt, SymbolNumber number_of_input_symbols);
 
 public:
     //!
-    //! create encoder from keytable 
-    Encoder(KeyTable * kt, SymbolNumber number_of_input_symbols);
-    SymbolNumber find_key(char ** p);
-    void read_input_symbol(const char * s, const int s_num);
+    //! create encoder from keytable
+    Encoder(KeyTable* kt, SymbolNumber number_of_input_symbols);
+    SymbolNumber find_key(char** p);
+    void read_input_symbol(const char* s, const int s_num);
     void read_input_symbol(std::string const & s, const int s_num);
 };
 
@@ -271,27 +276,28 @@ class TransitionIndex
 protected:
     SymbolNumber input_symbol; //!< transition's input symbol
     TransitionTableIndex first_transition_index; //!< first transition location
-  
+
 public:
-  
+
     //!
     //! Each TransitionIndex has an input symbol and a target index.
-    static const size_t SIZE = 
+    static const size_t SIZE =
         sizeof(SymbolNumber) + sizeof(TransitionTableIndex);
 
     //!
     //! Create transition index for symbol
     TransitionIndex(const SymbolNumber input,
-                    const TransitionTableIndex first_transition):
+                    const TransitionTableIndex first_transition) :
         input_symbol(input),
         first_transition_index(first_transition)
-        {}
+    {
+    }
     //!
     //! return target of transition
     TransitionTableIndex target(void) const;
     //!
     //! whether it's final state
-    bool final(void) const;
+    bool final (void) const;
     //!
     //! retrieve final weight
     Weight final_weight(void) const;
@@ -313,9 +319,9 @@ protected:
 
 public:
 
-    //! Each transition has an input symbol, an output symbol and 
+    //! Each transition has an input symbol, an output symbol and
     //! a target index.
-    static const size_t SIZE = 
+    static const size_t SIZE =
         2 * sizeof(SymbolNumber) + sizeof(TransitionTableIndex) + sizeof(Weight);
 
     //!
@@ -323,21 +329,23 @@ public:
     Transition(const SymbolNumber input,
                const SymbolNumber output,
                const TransitionTableIndex target,
-               const Weight w):
+               const Weight w) :
         input_symbol(input),
         output_symbol(output),
         target_index(target),
         transition_weight(w)
-        {}
+    {
+    }
 
-    Transition():
+    Transition() :
         input_symbol(NO_SYMBOL),
         output_symbol(NO_SYMBOL),
         target_index(NO_TABLE_INDEX),
         transition_weight(INFINITE_WEIGHT)
-        {}
+    {
+    }
 
-    //! 
+    //!
     //! get transitions target
     TransitionTableIndex target(void) const;
     //!
@@ -351,7 +359,7 @@ public:
     Weight get_weight(void) const;
     //!
     //! whether transition is final
-    bool final(void) const;
+    bool final (void) const;
 };
 
 //! Internal class for Transducer processing.
@@ -360,22 +368,22 @@ public:
 class IndexTable
 {
 private:
-    char * indices;
-  
-    void read(FILE * f,
+    char* indices;
+
+    void read(FILE* f,
               TransitionTableIndex number_of_table_entries);
-    void read(char ** raw,
+    void read(char** raw,
               TransitionTableIndex number_of_table_entries);
     TransitionTableIndex size;
 
 public:
     //!
     //! read index table from file @a f.
-    IndexTable(FILE * f,
+    IndexTable(FILE* f,
                TransitionTableIndex number_of_table_entries);
     //!
     //! read index table from raw data @a raw.
-    IndexTable(char ** raw,
+    IndexTable(char** raw,
                TransitionTableIndex number_of_table_entries);
     ~IndexTable(void);
     //!
@@ -384,10 +392,10 @@ public:
     //!
     //! target state location for the index
     TransitionTableIndex target(TransitionTableIndex i) const;
-    //! 
+    //!
     //! whether it's final transition
-    bool final(TransitionTableIndex i) const;
-    //! 
+    bool final (TransitionTableIndex i) const;
+    //!
     //! transition's weight
     Weight final_weight(TransitionTableIndex i) const;
 };
@@ -400,31 +408,31 @@ class TransitionTable
 protected:
     //!
     //! raw transition data
-    char * transitions;
- 
+    char* transitions;
+
     //!
     //! read known amount of transitions from file @a f
-    void read(FILE * f,
+    void read(FILE* f,
               TransitionTableIndex number_of_table_entries);
     //! read known amount of transitions from raw dara @a data
-    void read(char ** raw,
+    void read(char** raw,
               TransitionTableIndex number_of_table_entries);
     TransitionTableIndex size;
 public:
-    //! 
+    //!
     //! read transition table from file @a f
-    TransitionTable(FILE * f,
+    TransitionTable(FILE* f,
                     TransitionTableIndex transition_count);
     //!
     //! read transition table from raw data @a raw
-    TransitionTable(char ** raw,
+    TransitionTable(char** raw,
                     TransitionTableIndex transition_count);
 
     ~TransitionTable(void);
-    //! 
+    //!
     //! transition's input symbol
     SymbolNumber input_symbol(TransitionTableIndex i) const;
-    //! 
+    //!
     //! transition's output symbol
     SymbolNumber output_symbol(TransitionTableIndex i) const;
     //!
@@ -435,7 +443,7 @@ public:
     Weight weight(TransitionTableIndex i) const;
     //!
     //! whether it's final
-    bool final(TransitionTableIndex i) const;
+    bool final (TransitionTableIndex i) const;
 
 
 };
@@ -449,5 +457,5 @@ void debug_print(printable p)
 }
 
 } // namespace hfst_ol
-    
+
 #endif // HFST_OSPELL_HFST_OL_H_

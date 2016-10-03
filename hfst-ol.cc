@@ -25,7 +25,7 @@ inline T hfst_deref(T* ptr)
     return dest;
 }
 
-void skip_c_string(char ** raw)
+void skip_c_string(char** raw)
 {
     while (**raw != 0) {
         ++(*raw);
@@ -37,17 +37,14 @@ void
 TransducerHeader::read_property(bool& property, FILE* f)
 {
     unsigned int prop;
-    if (fread(&prop,sizeof(unsigned int),1,f) != 1) {
+    if (fread(&prop, sizeof(unsigned int), 1, f) != 1) {
         HFST_THROW_MESSAGE(HeaderParsingException,
                            "Header ended unexpectedly\n");
     }
-    if (prop == 0)
-    {
+    if (prop == 0) {
         property = false;
         return;
-    }
-    else
-    {
+    } else {
         property = true;
         return;
     }
@@ -56,34 +53,29 @@ TransducerHeader::read_property(bool& property, FILE* f)
 void
 TransducerHeader::read_property(bool& property, char** raw)
 {
-    unsigned int prop = *((unsigned int *) *raw);
+    unsigned int prop = *((unsigned int*) *raw);
     (*raw) += sizeof(unsigned int);
-    if (prop == 0)
-    {
+    if (prop == 0) {
         property = false;
         return;
-    }
-    else
-    {
+    } else {
         property = true;
         return;
     }
 }
 
-void TransducerHeader::skip_hfst3_header(FILE * f)
+void TransducerHeader::skip_hfst3_header(FILE* f)
 {
     const char* header1 = "HFST";
     unsigned int header_loc = 0; // how much of the header has been found
     int c;
-    for(header_loc = 0; header_loc < strlen(header1) + 1; header_loc++)
-    {
+    for (header_loc = 0; header_loc < strlen(header1) + 1; header_loc++) {
         c = getc(f);
-        if(c != header1[header_loc]) {
+        if (c != header1[header_loc]) {
             break;
         }
     }
-    if(header_loc == strlen(header1) + 1) // we found it
-    {
+    if (header_loc == strlen(header1) + 1) { // we found it
         unsigned short remaining_header_len;
         if (fread(&remaining_header_len,
                   sizeof(remaining_header_len), 1, f) != 1 ||
@@ -91,9 +83,8 @@ void TransducerHeader::skip_hfst3_header(FILE * f)
             HFST_THROW_MESSAGE(HeaderParsingException,
                                "Found broken HFST3 header\n");
         }
-        char * headervalue = new char[remaining_header_len];
-        if (fread(headervalue, remaining_header_len, 1, f) != 1)
-        {
+        char* headervalue = new char[remaining_header_len];
+        if (fread(headervalue, remaining_header_len, 1, f) != 1) {
             HFST_THROW_MESSAGE(HeaderParsingException,
                                "HFST3 header ended unexpectedly\n");
         }
@@ -113,36 +104,32 @@ void TransducerHeader::skip_hfst3_header(FILE * f)
                     "hfst-optimized-lookup\n");
             }
         }
-    } else // nope. put back what we've taken
-    {
+    } else { // nope. put back what we've taken
         ungetc(c, f); // first the non-matching character
-        for(int i = header_loc - 1; i>=0; i--) {
+        for (int i = header_loc - 1; i >= 0; i--) {
             // then the characters that did match (if any)
             ungetc(header1[i], f);
         }
     }
 }
 
-void TransducerHeader::skip_hfst3_header(char ** raw)
+void TransducerHeader::skip_hfst3_header(char** raw)
 {
     const char* header1 = "HFST";
     unsigned int header_loc = 0; // how much of the header has been found
 
-    for(header_loc = 0; header_loc < strlen(header1) + 1; header_loc++)
-    {
-        if(**raw != header1[header_loc]) {
+    for (header_loc = 0; header_loc < strlen(header1) + 1; header_loc++) {
+        if (**raw != header1[header_loc]) {
             break;
         }
         ++(*raw);
     }
-    if(header_loc == strlen(header1) + 1) // we found it
-    {
-        unsigned short remaining_header_len = *((unsigned short *) *raw);
+    if (header_loc == strlen(header1) + 1) { // we found it
+        unsigned short remaining_header_len = *((unsigned short*) *raw);
         (*raw) += sizeof(unsigned short) + 1 + remaining_header_len;
-    } else // nope. put back what we've taken
-    {
+    } else { // nope. put back what we've taken
         --(*raw); // first the non-matching character
-        for(int i = header_loc - 1; i>=0; i--) {
+        for (int i = header_loc - 1; i >= 0; i--) {
             // then the characters that did match (if any)
             --(*raw);
         }
@@ -153,31 +140,31 @@ TransducerHeader::TransducerHeader(FILE* f)
 {
     skip_hfst3_header(f); // skip header iff it is present
     /* The following conditional clause does all the numerical reads
-       and throws an exception if any fails to return 1 */
+     * and throws an exception if any fails to return 1 */
     if (fread(&number_of_input_symbols,
-              sizeof(SymbolNumber),1,f) != 1||
+              sizeof(SymbolNumber), 1, f) != 1 ||
         fread(&number_of_symbols,
-              sizeof(SymbolNumber),1,f) != 1||
+              sizeof(SymbolNumber), 1, f) != 1 ||
         fread(&size_of_transition_index_table,
-              sizeof(TransitionTableIndex),1,f) != 1||
+              sizeof(TransitionTableIndex), 1, f) != 1 ||
         fread(&size_of_transition_target_table,
-              sizeof(TransitionTableIndex),1,f) != 1||
+              sizeof(TransitionTableIndex), 1, f) != 1 ||
         fread(&number_of_states,
-              sizeof(TransitionTableIndex),1,f) != 1||
+              sizeof(TransitionTableIndex), 1, f) != 1 ||
         fread(&number_of_transitions,
-              sizeof(TransitionTableIndex),1,f) != 1) {
+              sizeof(TransitionTableIndex), 1, f) != 1) {
         HFST_THROW_MESSAGE(HeaderParsingException,
                            "Header ended unexpectedly\n");
     }
-    read_property(weighted,f);
-    read_property(deterministic,f);
-    read_property(input_deterministic,f);
-    read_property(minimized,f);
-    read_property(cyclic,f);
-    read_property(has_epsilon_epsilon_transitions,f);
-    read_property(has_input_epsilon_transitions,f);
-    read_property(has_input_epsilon_cycles,f);
-    read_property(has_unweighted_input_epsilon_cycles,f);
+    read_property(weighted, f);
+    read_property(deterministic, f);
+    read_property(input_deterministic, f);
+    read_property(minimized, f);
+    read_property(cyclic, f);
+    read_property(has_epsilon_epsilon_transitions, f);
+    read_property(has_input_epsilon_transitions, f);
+    read_property(has_input_epsilon_cycles, f);
+    read_property(has_unweighted_input_epsilon_cycles, f);
 }
 
 TransducerHeader::TransducerHeader(char** raw)
@@ -195,38 +182,38 @@ TransducerHeader::TransducerHeader(char** raw)
     (*raw) += sizeof(TransitionTableIndex);
     number_of_transitions = *(TransitionTableIndex*) *raw;
     (*raw) += sizeof(TransitionTableIndex);
-    read_property(weighted,raw);
-    read_property(deterministic,raw);
-    read_property(input_deterministic,raw);
-    read_property(minimized,raw);
-    read_property(cyclic,raw);
-    read_property(has_epsilon_epsilon_transitions,raw);
-    read_property(has_input_epsilon_transitions,raw);
-    read_property(has_input_epsilon_cycles,raw);
-    read_property(has_unweighted_input_epsilon_cycles,raw);
+    read_property(weighted, raw);
+    read_property(deterministic, raw);
+    read_property(input_deterministic, raw);
+    read_property(minimized, raw);
+    read_property(cyclic, raw);
+    read_property(has_epsilon_epsilon_transitions, raw);
+    read_property(has_input_epsilon_transitions, raw);
+    read_property(has_input_epsilon_cycles, raw);
+    read_property(has_unweighted_input_epsilon_cycles, raw);
 }
 
 SymbolNumber
 TransducerHeader::symbol_count()
 {
-    return number_of_symbols; 
+    return number_of_symbols;
 }
 
 SymbolNumber
 TransducerHeader::input_symbol_count()
 {
-    return number_of_input_symbols; 
+    return number_of_input_symbols;
 }
 TransitionTableIndex
 TransducerHeader::index_table_size(void)
 {
-    return size_of_transition_index_table; 
+    return size_of_transition_index_table;
 }
 
-TransitionTableIndex 
+TransitionTableIndex
 TransducerHeader::target_table_size()
 {
-    return size_of_transition_target_table; 
+    return size_of_transition_target_table;
 }
 
 bool
@@ -258,7 +245,7 @@ TransducerHeader::probe_flag(HeaderFlag flag)
 bool
 FlagDiacriticOperation::isFlag() const
 {
-    return feature != NO_SYMBOL; 
+    return feature != NO_SYMBOL;
 }
 
 FlagDiacriticOperator
@@ -281,9 +268,9 @@ FlagDiacriticOperation::Value() const
 }
 
 
-void TransducerAlphabet::read(FILE * f, SymbolNumber number_of_symbols)
+void TransducerAlphabet::read(FILE* f, SymbolNumber number_of_symbols)
 {
-    char * line = (char *) malloc(MAX_SYMBOL_BYTES);
+    char* line = (char*) malloc(MAX_SYMBOL_BYTES);
     std::map<std::string, SymbolNumber> feature_bucket;
     std::map<std::string, ValueNumber> value_bucket;
     value_bucket[std::string()] = 0; // empty value = neutral
@@ -300,7 +287,7 @@ void TransducerAlphabet::read(FILE * f, SymbolNumber number_of_symbols)
     }
 
     for (SymbolNumber k = 1; k < number_of_symbols; ++k) {
-        char * sym = line;
+        char* sym = line;
         while ( (byte = fgetc(f)) != 0 ) {
             if (byte == EOF) {
                 HFST_THROW(AlphabetParsingException);
@@ -323,19 +310,20 @@ void TransducerAlphabet::read(FILE * f, SymbolNumber number_of_symbols)
                 case 'C': op = C; break;
                 case 'U': op = U; break;
                 }
-                char * c = line;
-                for (c +=3; *c != '.' && *c != '@'; c++) { feat.append(c,1); }
-                if (*c == '.')
-                {
-                    for (++c; *c != '@'; c++) { val.append(c,1); }
+                char* c = line;
+                for (c += 3; *c != '.' && *c != '@'; c++) {
+                    feat.append(c, 1);
                 }
-                if (feature_bucket.count(feat) == 0)
-                {
+                if (*c == '.') {
+                    for (++c; *c != '@'; c++) {
+                        val.append(c, 1);
+                    }
+                }
+                if (feature_bucket.count(feat) == 0) {
                     feature_bucket[feat] = feat_num;
                     ++feat_num;
                 }
-                if (value_bucket.count(val) == 0)
-                {
+                if (value_bucket.count(val) == 0) {
                     value_bucket[val] = val_num;
                     ++val_num;
                 }
@@ -369,7 +357,7 @@ void TransducerAlphabet::read(FILE * f, SymbolNumber number_of_symbols)
     flag_state_size = feature_bucket.size();
 }
 
-void TransducerAlphabet::read(char ** raw, SymbolNumber number_of_symbols)
+void TransducerAlphabet::read(char** raw, SymbolNumber number_of_symbols)
 {
     std::map<std::string, SymbolNumber> feature_bucket;
     std::map<std::string, ValueNumber> value_bucket;
@@ -396,19 +384,20 @@ void TransducerAlphabet::read(char ** raw, SymbolNumber number_of_symbols)
                 case 'C': op = C; break;
                 case 'U': op = U; break;
                 }
-                char * c = *raw;
-                for (c +=3; *c != '.' && *c != '@'; c++) { feat.append(c,1); }
-                if (*c == '.')
-                {
-                    for (++c; *c != '@'; c++) { val.append(c,1); }
+                char* c = *raw;
+                for (c += 3; *c != '.' && *c != '@'; c++) {
+                    feat.append(c, 1);
                 }
-                if (feature_bucket.count(feat) == 0)
-                {
+                if (*c == '.') {
+                    for (++c; *c != '@'; c++) {
+                        val.append(c, 1);
+                    }
+                }
+                if (feature_bucket.count(feat) == 0) {
                     feature_bucket[feat] = feat_num;
                     ++feat_num;
                 }
-                if (value_bucket.count(val) == 0)
-                {
+                if (value_bucket.count(val) == 0) {
                     value_bucket[val] = val_num;
                     ++val_num;
                 }
@@ -446,7 +435,7 @@ void TransducerAlphabet::read(char ** raw, SymbolNumber number_of_symbols)
     flag_state_size = feature_bucket.size();
 }
 
-TransducerAlphabet::TransducerAlphabet(FILE* f, SymbolNumber number_of_symbols):
+TransducerAlphabet::TransducerAlphabet(FILE* f, SymbolNumber number_of_symbols) :
     unknown_symbol(NO_SYMBOL),
     identity_symbol(NO_SYMBOL),
     orig_symbol_count(number_of_symbols)
@@ -455,7 +444,7 @@ TransducerAlphabet::TransducerAlphabet(FILE* f, SymbolNumber number_of_symbols):
 }
 
 TransducerAlphabet::TransducerAlphabet(char** raw,
-                                       SymbolNumber number_of_symbols):
+                                       SymbolNumber number_of_symbols) :
     unknown_symbol(NO_SYMBOL),
     identity_symbol(NO_SYMBOL),
     orig_symbol_count(number_of_symbols)
@@ -469,7 +458,7 @@ void TransducerAlphabet::add_symbol(std::string & sym)
     kt.push_back(sym);
 }
 
-void TransducerAlphabet::add_symbol(char * sym)
+void TransducerAlphabet::add_symbol(char* sym)
 {
     std::string s(sym);
     add_symbol(s);
@@ -478,7 +467,7 @@ void TransducerAlphabet::add_symbol(char * sym)
 KeyTable*
 TransducerAlphabet::get_key_table()
 {
-    return &kt; 
+    return &kt;
 }
 
 OperationMap*
@@ -527,71 +516,67 @@ TransducerAlphabet::is_flag(SymbolNumber symbol)
     return operations.count(symbol) == 1;
 }
 
-void IndexTable::read(FILE * f,
+void IndexTable::read(FILE* f,
                       TransitionTableIndex number_of_table_entries)
 {
-    size_t table_size = number_of_table_entries*TransitionIndex::SIZE;
-    indices = (char*)(malloc(table_size));
-    if (fread(indices,table_size, 1, f) != 1) {
+    size_t table_size = number_of_table_entries * TransitionIndex::SIZE;
+    indices = (char*) (malloc(table_size));
+    if (fread(indices, table_size, 1, f) != 1) {
         HFST_THROW(IndexTableReadingException);
     }
 }
 
-void IndexTable::read(char ** raw,
+void IndexTable::read(char** raw,
                       TransitionTableIndex number_of_table_entries)
 {
-    size_t table_size = number_of_table_entries*TransitionIndex::SIZE;
-    indices = (char*)(malloc(table_size));
-    memcpy((void *) indices, (const void *) *raw, table_size);
+    size_t table_size = number_of_table_entries * TransitionIndex::SIZE;
+    indices = (char*) (malloc(table_size));
+    memcpy((void*) indices, (const void*) *raw, table_size);
     (*raw) += table_size;
 }
 
-void TransitionTable::read(FILE * f,
+void TransitionTable::read(FILE* f,
                            TransitionTableIndex number_of_table_entries)
 {
-    size_t table_size = number_of_table_entries*Transition::SIZE;
-    transitions = (char*)(malloc(table_size));
+    size_t table_size = number_of_table_entries * Transition::SIZE;
+    transitions = (char*) (malloc(table_size));
     if (fread(transitions, table_size, 1, f) != 1) {
         HFST_THROW(TransitionTableReadingException);
     }
 }
 
-void TransitionTable::read(char ** raw,
+void TransitionTable::read(char** raw,
                            TransitionTableIndex number_of_table_entries)
 {
-    size_t table_size = number_of_table_entries*Transition::SIZE;
-    transitions = (char*)(malloc(table_size));
-    memcpy((void *) transitions, (const void *) *raw, table_size);
+    size_t table_size = number_of_table_entries * Transition::SIZE;
+    transitions = (char*) (malloc(table_size));
+    memcpy((void*) transitions, (const void*) *raw, table_size);
     (*raw) += table_size;
 }
 
-void LetterTrie::add_string(const char * p, SymbolNumber symbol_key)
+void LetterTrie::add_string(const char* p, SymbolNumber symbol_key)
 {
-    if (*(p+1) == 0)
-    {
-        symbols[(unsigned char)(*p)] = symbol_key;
+    if (*(p + 1) == 0) {
+        symbols[(unsigned char) (*p)] = symbol_key;
         return;
     }
-    if (letters[(unsigned char)(*p)] == NULL)
-    {
-        letters[(unsigned char)(*p)] = new LetterTrie();
+    if (letters[(unsigned char) (*p)] == NULL) {
+        letters[(unsigned char) (*p)] = new LetterTrie();
     }
-    letters[(unsigned char)(*p)]->add_string(p+1,symbol_key);
+    letters[(unsigned char) (*p)]->add_string(p + 1, symbol_key);
 }
 
-SymbolNumber LetterTrie::find_key(char ** p)
+SymbolNumber LetterTrie::find_key(char** p)
 {
-    const char * old_p = *p;
+    const char* old_p = *p;
     ++(*p);
-    if (letters[(unsigned char)(*old_p)] == NULL)
-    {
-        return symbols[(unsigned char)(*old_p)];
+    if (letters[(unsigned char) (*old_p)] == NULL) {
+        return symbols[(unsigned char) (*old_p)];
     }
-    SymbolNumber s = letters[(unsigned char)(*old_p)]->find_key(p);
-    if (s == NO_SYMBOL)
-    {
+    SymbolNumber s = letters[(unsigned char) (*old_p)]->find_key(p);
+    if (s == NO_SYMBOL) {
         --(*p);
-        return symbols[(unsigned char)(*old_p)];
+        return symbols[(unsigned char) (*old_p)];
     }
     return s;
 }
@@ -599,29 +584,26 @@ SymbolNumber LetterTrie::find_key(char ** p)
 LetterTrie::~LetterTrie()
 {
     for (LetterTrieVector::iterator i = letters.begin();
-         i != letters.end(); ++i)
-    {
-        if (*i)
-        { 
+         i != letters.end(); ++i) {
+        if (*i) {
             delete *i;
         }
     }
 }
 
-Encoder::Encoder(KeyTable * kt, SymbolNumber number_of_input_symbols):
-    ascii_symbols(UCHAR_MAX,NO_SYMBOL)
+Encoder::Encoder(KeyTable* kt, SymbolNumber number_of_input_symbols) :
+    ascii_symbols(UCHAR_MAX, NO_SYMBOL)
 {
     read_input_symbols(kt, number_of_input_symbols);
 }
 
-void Encoder::read_input_symbol(const char * s, const int s_num)
+void Encoder::read_input_symbol(const char* s, const int s_num)
 {
     if (strlen(s) == 0) { // ignore empty strings
         return;
     }
-    if ((strlen(s) == 1) && (unsigned char)(*s) <= 127)
-    {
-        ascii_symbols[(unsigned char)(*s)] = s_num;
+    if ((strlen(s) == 1) && (unsigned char) (*s) <= 127) {
+        ascii_symbols[(unsigned char) (*s)] = s_num;
     }
     letters.add_string(s, s_num);
 }
@@ -631,12 +613,11 @@ void Encoder::read_input_symbol(std::string const & s, const int s_num)
     read_input_symbol(s.c_str(), s_num);
 }
 
-void Encoder::read_input_symbols(KeyTable * kt,
+void Encoder::read_input_symbols(KeyTable* kt,
                                  SymbolNumber number_of_input_symbols)
 {
-    for (SymbolNumber k = 0; k < number_of_input_symbols; ++k)
-    {
-        const char * p = kt->at(k).c_str();
+    for (SymbolNumber k = 0; k < number_of_input_symbols; ++k) {
+        const char* p = kt->at(k).c_str();
         read_input_symbol(p, k);
     }
 }
@@ -647,11 +628,11 @@ TransitionIndex::target() const
     return first_transition_index;
 }
 
-bool 
-TransitionIndex::final(void) const
+bool
+TransitionIndex::final (void) const
 {
     return input_symbol == NO_SYMBOL &&
-        first_transition_index != NO_TABLE_INDEX;
+           first_transition_index != NO_TABLE_INDEX;
 }
 
 Weight
@@ -672,7 +653,7 @@ TransitionIndex::get_input(void) const
     return input_symbol;
 }
 
-TransitionTableIndex 
+TransitionTableIndex
 Transition::target(void) const
 {
     return target_index;
@@ -697,23 +678,23 @@ Transition::get_weight(void) const
 }
 
 bool
-Transition::final(void) const
+Transition::final (void) const
 {
     return input_symbol == NO_SYMBOL &&
-        output_symbol == NO_SYMBOL &&
-        target_index == 1;
+           output_symbol == NO_SYMBOL &&
+           target_index == 1;
 }
 
 IndexTable::IndexTable(FILE* f,
-                       TransitionTableIndex number_of_table_entries):
+                       TransitionTableIndex number_of_table_entries) :
     indices(NULL),
     size(number_of_table_entries)
 {
     read(f, number_of_table_entries);
 }
-    
-IndexTable::IndexTable(char ** raw,
-                       TransitionTableIndex number_of_table_entries):
+
+IndexTable::IndexTable(char** raw,
+                       TransitionTableIndex number_of_table_entries) :
     indices(NULL),
     size(number_of_table_entries)
 {
@@ -731,7 +712,7 @@ SymbolNumber
 IndexTable::input_symbol(TransitionTableIndex i) const
 {
     if (i < size) {
-        return hfst_deref((SymbolNumber *)
+        return hfst_deref((SymbolNumber*)
                           (indices + TransitionIndex::SIZE * i));
     } else {
         return NO_SYMBOL;
@@ -742,7 +723,7 @@ TransitionTableIndex
 IndexTable::target(TransitionTableIndex i) const
 {
     if (i < size) {
-        return hfst_deref((TransitionTableIndex *) 
+        return hfst_deref((TransitionTableIndex*)
                           (indices + TransitionIndex::SIZE * i +
                            sizeof(SymbolNumber)));
     } else {
@@ -751,7 +732,7 @@ IndexTable::target(TransitionTableIndex i) const
 }
 
 bool
-IndexTable::final(TransitionTableIndex i) const
+IndexTable::final (TransitionTableIndex i) const
 {
     return input_symbol(i) == NO_SYMBOL && target(i) != NO_TABLE_INDEX;
 }
@@ -760,7 +741,7 @@ Weight
 IndexTable::final_weight(TransitionTableIndex i) const
 {
     if (i < size) {
-        return hfst_deref((Weight *)
+        return hfst_deref((Weight*)
                           (indices + TransitionIndex::SIZE * i +
                            sizeof(SymbolNumber)));
     } else {
@@ -768,16 +749,16 @@ IndexTable::final_weight(TransitionTableIndex i) const
     }
 }
 
-TransitionTable::TransitionTable(FILE * f,
-                                 TransitionTableIndex transition_count):
+TransitionTable::TransitionTable(FILE* f,
+                                 TransitionTableIndex transition_count) :
     transitions(NULL),
     size(transition_count)
 {
     read(f, transition_count);
 }
-  
-TransitionTable::TransitionTable(char ** raw,
-                                 TransitionTableIndex transition_count):
+
+TransitionTable::TransitionTable(char** raw,
+                                 TransitionTableIndex transition_count) :
     transitions(NULL),
     size(transition_count)
 {
@@ -795,7 +776,7 @@ SymbolNumber
 TransitionTable::input_symbol(TransitionTableIndex i) const
 {
     if (i < size) {
-        return hfst_deref((SymbolNumber *)
+        return hfst_deref((SymbolNumber*)
                           (transitions + Transition::SIZE * i));
     } else {
         return NO_SYMBOL;
@@ -806,7 +787,7 @@ SymbolNumber
 TransitionTable::output_symbol(TransitionTableIndex i) const
 {
     if (i < size) {
-        return hfst_deref((SymbolNumber *)
+        return hfst_deref((SymbolNumber*)
                           (transitions + Transition::SIZE * i +
                            sizeof(SymbolNumber)));
     } else {
@@ -818,9 +799,9 @@ TransitionTableIndex
 TransitionTable::target(TransitionTableIndex i) const
 {
     if (i < size) {
-        return hfst_deref((TransitionTableIndex *)
+        return hfst_deref((TransitionTableIndex*)
                           (transitions + Transition::SIZE * i +
-                           2*sizeof(SymbolNumber)));
+                           2 * sizeof(SymbolNumber)));
     } else {
         return NO_TABLE_INDEX;
     }
@@ -830,9 +811,9 @@ Weight
 TransitionTable::weight(TransitionTableIndex i) const
 {
     if (i < size) {
-        return hfst_deref((Weight *)
+        return hfst_deref((Weight*)
                           (transitions + Transition::SIZE * i +
-                           2*sizeof(SymbolNumber) +
+                           2 * sizeof(SymbolNumber) +
                            sizeof(TransitionTableIndex)));
     } else {
         return INFINITE_WEIGHT;
@@ -840,20 +821,19 @@ TransitionTable::weight(TransitionTableIndex i) const
 }
 
 bool
-TransitionTable::final(TransitionTableIndex i) const
+TransitionTable::final (TransitionTableIndex i) const
 {
     return input_symbol(i) == NO_SYMBOL &&
-        output_symbol(i) == NO_SYMBOL &&
-        target(i) == 1;
+           output_symbol(i) == NO_SYMBOL &&
+           target(i) == 1;
 }
 
-SymbolNumber Encoder::find_key(char ** p)
+SymbolNumber Encoder::find_key(char** p)
 {
-    if (ascii_symbols[(unsigned char)(**p)] == NO_SYMBOL)
-    {
+    if (ascii_symbols[(unsigned char) (**p)] == NO_SYMBOL) {
         return letters.find_key(p);
     }
-    SymbolNumber s = ascii_symbols[(unsigned char)(**p)];
+    SymbolNumber s = ascii_symbols[(unsigned char) (**p)];
     ++(*p);
     return s;
 }

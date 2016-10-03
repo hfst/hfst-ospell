@@ -19,52 +19,55 @@ struct OspellException
     std::string file; //!< file name of exception
     size_t line;      //!< line number of exception
 
-    OspellException(void) {}
-   
-//!
-//! construct exception with name, file and location
-OspellException(const std::string &name,const std::string &file,size_t line):
-    name(name),
-    file(file),
-    line(line)
-    {}
-    
+    OspellException(void)
+    {
+    }
+
+    //!
+    //! construct exception with name, file and location
+    OspellException(const std::string &name, const std::string &file, size_t line) :
+        name(name),
+        file(file),
+        line(line)
+    {
+    }
+
     //!
     //! create string representation of exception for output
-    std::string operator() (void) const
+    std::string operator()(void) const
     {
         std::ostringstream o;
-        o << "Exception: "<< name << " in file: "
+        o << "Exception: " << name << " in file: "
           << file << " on line: " << line;
         return o.str();
     }
     //!
     //! create char array representation of exception for output
     const char* what()
-      {
+    {
         std::ostringstream o;
         o << file << ":" << line << ":" << name;
         return o.str().c_str();
-      }
+    }
 };
 
 // These macros are used instead of the normal exception facilities.
 
-#define HFST_THROW(E) throw E(#E,__FILE__,__LINE__)
+#define HFST_THROW(E) throw E(#E, __FILE__, __LINE__)
 
-#define HFST_THROW_MESSAGE(E,M) throw E(std::string(#E)+": "+std::string(M)\
-                        ,__FILE__,__LINE__)
+#define HFST_THROW_MESSAGE(E, M) throw E(std::string(#E) + ": " + std::string(M) \
+                                         , __FILE__, __LINE__)
 
 #define HFST_EXCEPTION_CHILD_DECLARATION(CHILD) \
     struct CHILD : public OspellException \
-    { CHILD(const std::string &name,const std::string &file,size_t line):\
-    OspellException(name,file,line) {}} 
+    { CHILD(const std::string & name, const std::string & file, size_t line) : \
+          OspellException(name, file, line) {} }
 
 #define HFST_CATCH(E)                           \
     catch (const E &e)                          \
     {                                   \
-    std::cerr << e.file << ", line " << e.line << ": " <<       \
-        e() << std::endl;                       \
+        std::cerr << e.file << ", line " << e.line << ": " <<       \
+            e() << std::endl;                       \
     }
 
 // Now the exceptions themselves

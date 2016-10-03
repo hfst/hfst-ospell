@@ -1,23 +1,23 @@
 /*
-  
-  Copyright 2009 University of Helsinki
-  
-  Licensed under the Apache License, Version 2.0 (the "License");
-  you may not use this file except in compliance with the License.
-  You may obtain a copy of the License at
-  
-  http://www.apache.org/licenses/LICENSE-2.0
-  
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
-  
-*/
+ *
+ * Copyright 2009 University of Helsinki
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
 
 /*
-  This is a toy commandline utility for testing spellers on standard io.
+ * This is a toy commandline utility for testing spellers on standard io.
  */
 
 
@@ -30,8 +30,8 @@
 #if HAVE_ERROR_H
 #  include <error.h>
 #else
-#define error(status, errnum, format, ...) fprintf(stderr, format, ##__VA_ARGS__); \
-  if (status != 0) exit(status);
+#define error(status, errnum, format, ...) fprintf(stderr, format, ## __VA_ARGS__); \
+    if (status != 0) exit(status);
 #endif
 #include <time.h>
 #include <sys/time.h>
@@ -72,25 +72,25 @@ bool
 print_usage(void)
 {
     std::cerr <<
-    "\n" <<
-    "Usage: " << PACKAGE_NAME << " [OPTIONS] ZHFST\n" <<
-    "Run a composition of ZHFST and field 1 of standard input and\n" <<
-    "print corrected output on fields 3...\n" <<
-    "\n" <<
-    "  -h, --help                  Print this help message\n" <<
-    "  -V, --version               Print version information\n" <<
-    "  -v, --verbose               Be verbose\n" <<
-    "  -q, --quiet                 Don't be verbose (default)\n" <<
-    "  -s, --silent                Same as quiet\n" <<
-    "  -P, --profile=PFILE         Save profiling data to PFILE\n" <<
-    "  -X, --statistics=SFILE      Save statistsics to SFILE\n" <<
-    "  -H, --histogram=HFILE       Save match numbes to HFILE\n" <<
-    "  -n, --n-best=NBEST          Collect and provide only NBEST suggestions\n"
-    <<
-    "\n" <<
-    "\n" <<
-    "Report bugs to " << PACKAGE_BUGREPORT << "\n" <<
-    "\n";
+        "\n" <<
+        "Usage: " << PACKAGE_NAME << " [OPTIONS] ZHFST\n" <<
+        "Run a composition of ZHFST and field 1 of standard input and\n" <<
+        "print corrected output on fields 3...\n" <<
+        "\n" <<
+        "  -h, --help                  Print this help message\n" <<
+        "  -V, --version               Print version information\n" <<
+        "  -v, --verbose               Be verbose\n" <<
+        "  -q, --quiet                 Don't be verbose (default)\n" <<
+        "  -s, --silent                Same as quiet\n" <<
+        "  -P, --profile=PFILE         Save profiling data to PFILE\n" <<
+        "  -X, --statistics=SFILE      Save statistsics to SFILE\n" <<
+        "  -H, --histogram=HFILE       Save match numbes to HFILE\n" <<
+        "  -n, --n-best=NBEST          Collect and provide only NBEST suggestions\n"
+              <<
+        "\n" <<
+        "\n" <<
+        "Report bugs to " << PACKAGE_BUGREPORT << "\n" <<
+        "\n";
     return true;
 }
 
@@ -110,209 +110,168 @@ bool print_short_help(void)
 
 int
 zhfst_spell(char* zhfst_filename)
-  {
+{
     ZHfstOspeller speller;
-    try 
-      {
+    try
+    {
         speller.read_zhfst(zhfst_filename);
-      }
-   catch (hfst_ol::ZHfstMetaDataParsingError zhmdpe)
-     {
-       error(EXIT_FAILURE, 0, "error while parsing metadata in %s: %s\n",
-             zhfst_filename, zhmdpe.what());
-     }
-   catch (hfst_ol::ZHfstZipReadingError zhzre)
-     {
-       error(EXIT_FAILURE, 0, "error while unzipping %s: %s\n",
-             zhfst_filename, zhzre.what());
-     }
-    if (verbose)
-      {
+    }
+    catch (hfst_ol::ZHfstMetaDataParsingError zhmdpe)
+    {
+        error(EXIT_FAILURE, 0, "error while parsing metadata in %s: %s\n",
+              zhfst_filename, zhmdpe.what());
+    }
+    catch (hfst_ol::ZHfstZipReadingError zhzre)
+    {
+        error(EXIT_FAILURE, 0, "error while unzipping %s: %s\n",
+              zhfst_filename, zhzre.what());
+    }
+    if (verbose) {
         fprintf(stdout, "Following metadata was read from ZHFST archive:\n%s",
                 speller.metadata_dump().c_str());
-      }
-    char * str = (char*) malloc(2000);
-    char* always_incorrect = strdup("\001\002@ALWAYS INCORRECT@"); 
+    }
+    char* str = (char*) malloc(2000);
+    char* always_incorrect = strdup("\001\002@ALWAYS INCORRECT@");
     bool correcting = false;
     unsigned long linen = 0;
-    if (verbose)
-      {
+    if (verbose) {
         fprintf(stdout, "Reading corrections from <stdin>\n");
-      }
-    else
-      {
-        fprintf(stdout, 
+    } else {
+        fprintf(stdout,
                 "Misspelled\tCorrect\tSuggestion 1\tSuggestion 2\t...\n");
-      }
+    }
     while (!std::cin.eof()) {
         linen++;
         std::cin.getline(str, 2000);
-        if (str[0] == '\0') 
-          {
+        if (str[0] == '\0') {
             fprintf(stderr, "Skipping empty line at %lu\n", linen);
             continue;
-          }
-        if (str[strlen(str) - 1] == '\r')
-          {
+        }
+        if (str[strlen(str) - 1] == '\r') {
             fprintf(stdout, "There is a WINDOWS linebreak in this file\n"
-                "Please convert with dos2unix or fromdos");
+                    "Please convert with dos2unix or fromdos");
             exit(3);
-          }
+        }
         char* tab = strchr(str, '\t');
         char* correct = 0;
-        if (tab != NULL)
-          {
+        if (tab != NULL) {
             *tab = '\0';
             correct = strdup(tab + 1);
             char* p = correct;
-            while (*p != '\0')
-              {
+            while (*p != '\0') {
                 p++;
-                if ((*p == '\n') || (*p == '\t'))
-                  {
+                if ((*p == '\n') || (*p == '\t')) {
                     *p = '\0';
-                  }
-              }
+                }
+            }
             correcting = true;
-          }
-        else
-          {
+        } else {
             correct = always_incorrect;
             correcting = false;
-          }
-        if (verbose)
-          {
+        }
+        if (verbose) {
             fprintf(stdout, "Checking if %s == %s\n", str, correct);
-          }
-        else
-          {
+        } else {
             fprintf(stdout, "%s\t%s", str, correct);
-          }
+        }
         lines++;
         int i = 0;
         bool any_corrects = false;
-        if (speller.spell(str)) 
-          {
+        if (speller.spell(str)) {
             // spelling correct string is as if one suggestion was
             // made at edit 0 for means of this article;
             i++;
-            if (strcmp(str, correct) == 0)
-              {
+            if (strcmp(str, correct) == 0) {
                 corrects_at[i]++;
                 any_corrects = true;
-              }
+            }
             results[i]++;
             in_language++;
-            if (verbose)
-              {
+            if (verbose) {
                 fprintf(stdout, "%s was in the lexicon\n", str);
-              }
-            else
-              {
+            } else {
                 fprintf(stdout, "\t%s", str);
-              }
-          }
+            }
+        }
         hfst_ol::CorrectionQueue corrections = speller.suggest(str /*,
-                                                                max_results */);
-        while (corrections.size() > 0)
-          {
+                                                                    * max_results */);
+        while (corrections.size() > 0) {
             i++;
-            if (i >= check_results)
-              {
+            if (i >= check_results) {
                 break;
-              }
-            if (verbose)
-              {
-                fprintf(stdout, "Trying %s\n", 
+            }
+            if (verbose) {
+                fprintf(stdout, "Trying %s\n",
                         corrections.top().first.c_str());
-              }
-            else
-              {
+            } else {
                 fprintf(stdout, "\t%s",
-                    corrections.top().first.c_str());
-              }
-            if (strcmp(corrections.top().first.c_str(), correct) == 0)
-              {
-                if (i >= max_results)
-                  {
-                    if (verbose)
-                      {
+                        corrections.top().first.c_str());
+            }
+            if (strcmp(corrections.top().first.c_str(), correct) == 0) {
+                if (i >= max_results) {
+                    if (verbose) {
                         fprintf(stdout, "%d was correct beyond threshold\n", i);
-                      }
+                    }
                     corrects_beyond++;
-                  }
-                else
-                  {
-                    if (verbose)
-                      {
+                } else {
+                    if (verbose) {
                         fprintf(stdout, "%d was correct\n", i);
-                      }
+                    }
                     corrects_at[i]++;
-                  }
+                }
                 any_corrects = true;
-              }
+            }
             corrections.pop();
-          } // while corrections
-        if (!any_corrects)
-          {
+        } // while corrections
+        if (!any_corrects) {
             no_corrects++;
-            if (verbose)
-              {
+            if (verbose) {
                 fprintf(stdout, "no corrects for %s ?= %s\n", str, correct);
-              }
-          }
+            }
+        }
         fprintf(stdout, "\n");
-        if (i >= max_results)
-          {
+        if (i >= max_results) {
             results_beyond++;
-          }
-        else
-          {
+        } else {
             results[i]++;
-          }
-        if (!speller.spell(correct))
-          {
-            if (verbose)
-              {
+        }
+        if (!speller.spell(correct)) {
+            if (verbose) {
                 fprintf(stdout, "could not have been corrected, missing %s\n",
                         correct);
-              }
+            }
             correct_not_in_lm++;
-          }
-        if (correcting)
-          {
+        }
+        if (correcting) {
             free(correct);
-          }
-      } 
+        }
+    }
     return EXIT_SUCCESS;
 
 }
 
 void
 hfst_print_profile_line()
-  {
-    if (profile_file == 0)
-      {
+{
+    if (profile_file == 0) {
         return;
-      }
-    if (ftell(profile_file) == 0L)
-      {
+    }
+    if (ftell(profile_file) == 0L) {
         fprintf(profile_file, "name\tclock\t"
                 "utime\tstime\tmaxrss\tixrss\tidrss\tisrss\t"
                 "minflt\tmajflt\tnswap\tinblock\toublock\t"
                 "msgsnd\tmsgrcv\tnsignals\tnvcsw\tnivcsw\n");
-      }
+    }
 
     fprintf(profile_file, "ospell");
     profile_end = clock();
-    fprintf(profile_file, "\t%f", ((float)(profile_end - profile_start))
-                                               / CLOCKS_PER_SEC);
+    fprintf(profile_file, "\t%f", ((float) (profile_end - profile_start))
+            / CLOCKS_PER_SEC);
     struct rusage* usage = static_cast<struct rusage*>
-        (malloc(sizeof(struct rusage)));
+                           (malloc(sizeof(struct rusage)));
     errno = 0;
     int rv = getrusage(RUSAGE_SELF, usage);
-    if (rv != -1)
-      {
+    if (rv != -1) {
         fprintf(profile_file, "\t%lu.%lu\t%lu.%lu"
                 "\t%ld\t%ld\t%ld"
                 "\t%ld"
@@ -326,41 +285,35 @@ hfst_print_profile_line()
                 usage->ru_maxrss, usage->ru_ixrss, usage->ru_idrss,
                 usage->ru_isrss,
                 usage->ru_minflt, usage->ru_majflt, usage->ru_nswap,
-                usage->ru_inblock, usage->ru_oublock, 
+                usage->ru_inblock, usage->ru_oublock,
                 usage->ru_msgsnd, usage->ru_msgrcv,
                 usage->ru_nsignals,
                 usage->ru_nvcsw, usage->ru_nivcsw);
-      }
-    else
-      {
+    } else {
         fprintf(profile_file, "\tgetrusage: %s", strerror(errno));
-      }
+    }
     fprintf(profile_file, "\n");
-  }
+}
 
 void
 print_statistics()
-  {
-    if (NULL == statistics_file)
-      {
+{
+    if (NULL == statistics_file) {
         return;
-      }
-    if (lines == 0)
-      {
+    }
+    if (lines == 0) {
         fprintf(stderr, "DATOISSA VIRHE. END.\n");
         exit(1);
-      }
+    }
     // calculate stuff
     unsigned long corrects_rest = 0;
     unsigned long total_results = 0;
-    for (int i = 6; i < max_results; i++)
-      {
+    for (int i = 6; i < max_results; i++) {
         corrects_rest += corrects_at[i];
-      }
-    for (int i = 0; i < max_results; i++)
-      {
+    }
+    for (int i = 0; i < max_results; i++) {
         total_results += results[i] * i;
-      }
+    }
     some_results = lines - results[0];
     fixable_lines = lines - correct_not_in_lm;
     // print
@@ -392,42 +345,40 @@ print_statistics()
             static_cast<float>(corrects_at[5]) / static_cast<float>(fixable_lines) * 100.0f,
             static_cast<float>(corrects_rest) / static_cast<float>(fixable_lines) * 100.0f,
             static_cast<float>(no_corrects - correct_not_in_lm) / static_cast<float>(fixable_lines) * 100.0f);
-    if (histogram_file == NULL)
-      {
+    if (histogram_file == NULL) {
         return;
-      }
+    }
     fprintf(histogram_file, "Result count\tfrequency\n");
-    for (int i = 0; i < max_results; i++)
-      {
+    for (int i = 0; i < max_results; i++) {
         fprintf(histogram_file, "%u\t%lu\n", i, results[i]);
-      }
-  }
+    }
+}
 
-int main(int argc, char **argv)
-  {
+int main(int argc, char** argv)
+{
     results = new long[max_results];
     corrects_at = new long[max_results];
-    
+
     int c;
     //std::locale::global(std::locale(""));
-  
+
 #if HAVE_GETOPT_H
     while (true) {
         static struct option long_options[] =
-            {
+        {
             // first the hfst-mandated options
-            {"help",         no_argument,       0, 'h'},
-            {"version",      no_argument,       0, 'V'},
-            {"verbose",      no_argument,       0, 'v'},
-            {"quiet",        no_argument,       0, 'q'},
-            {"silent",       no_argument,       0, 's'},
-            {"profile",      required_argument, 0, 'P'},
-            {"statistics",   required_argument, 0, 'X'},
-            {"histogram",    required_argument, 0, 'H'},
-            {"n-best",       required_argument, 0, 'n'},
-            {0,              0,                 0,  0 }
-            };
-          
+            { "help",         no_argument,       0, 'h' },
+            { "version",      no_argument,       0, 'V' },
+            { "verbose",      no_argument,       0, 'v' },
+            { "quiet",        no_argument,       0, 'q' },
+            { "silent",       no_argument,       0, 's' },
+            { "profile",      required_argument, 0, 'P' },
+            { "statistics",   required_argument, 0, 'X' },
+            { "histogram",    required_argument, 0, 'H' },
+            { "n-best",       required_argument, 0, 'n' },
+            { 0,              0,                 0,  0 }
+        };
+
         int option_index = 0;
         c = getopt_long(argc, argv, "hVvqsP:X:H:n:", long_options, &option_index);
 
@@ -439,38 +390,35 @@ int main(int argc, char **argv)
             print_usage();
             return EXIT_SUCCESS;
             break;
-          
+
         case 'V':
             print_version();
             return EXIT_SUCCESS;
             break;
-          
+
         case 'v':
             verbose = true;
             quiet = false;
             break;
-          
+
         case 'P':
             profile_file = fopen(optarg, "a");
-            if (NULL == profile_file)
-              {
+            if (NULL == profile_file) {
                 perror("Couldn't open profiling file for append");
-              }
+            }
             profile_start = clock();
             break;
         case 'X':
             statistics_file = fopen(optarg, "w");
-            if (NULL == statistics_file)
-              {
+            if (NULL == statistics_file) {
                 perror("Couldn't open statistic file for writing");
-              }
+            }
             break;
         case 'H':
             histogram_file = fopen(optarg, "w");
-            if (NULL == histogram_file)
-              {
+            if (NULL == histogram_file) {
                 perror("Couldn't open histogram file for wriitng");
-              }
+            }
             break;
         case 'q': // fallthrough
         case 's':
@@ -480,10 +428,9 @@ int main(int argc, char **argv)
         case 'n':
             char* endptr;
             max_results = strtoul(optarg, &endptr, 10L);
-            if (*endptr != '\0')
-              {
+            if (*endptr != '\0') {
                 perror("argument not valid for n-best");
-              }
+            }
             break;
         default:
             std::cerr << "Invalid option\n\n";
@@ -494,25 +441,20 @@ int main(int argc, char **argv)
     }
 #else
     int optind = 1;
-#endif
-    // no more options, we should now be at the input filenames
-    if (optind == (argc - 1))
-      {
+#endif // if HAVE_GETOPT_H
+       // no more options, we should now be at the input filenames
+    if (optind == (argc - 1)) {
         zhfst_spell(argv[optind]);
-      }
-    else if (optind < (argc - 1))
-      {
+    } else if (optind < (argc - 1)) {
         fprintf(stderr, "No more than one free parameter allowed\n");
         print_short_help();
         return EXIT_FAILURE;
-      }
-    else if (optind >= argc)
-      {
-        fprintf(stderr ,"Give full path to zhfst spellers\n");
+    } else if (optind >= argc) {
+        fprintf(stderr, "Give full path to zhfst spellers\n");
         print_short_help();
         return EXIT_FAILURE;
-      }
+    }
     hfst_print_profile_line();
     print_statistics();
     return EXIT_SUCCESS;
-  }
+}
