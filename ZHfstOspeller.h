@@ -90,6 +90,9 @@ namespace hfst_ol
             //! @brief create string representation of the speller for
             //!        programmer to debug
             std::string metadata_dump() const;
+
+            //! @brief Alphabet for the current speller
+            KeyTable* get_alphabet() const;
         private:
             //! @brief file or path where the speller came from
             std::string filename_;

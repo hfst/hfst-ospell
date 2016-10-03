@@ -245,6 +245,17 @@ ZHfstOspeller::suggest_analyses(const string& wordform)
     return rv;
   }
 
+KeyTable*
+ZHfstOspeller::get_alphabet() const
+{
+    if (current_speller_ == nullptr)
+    {
+        return nullptr;
+    }
+
+    return current_speller_->lexicon->get_key_table();
+}
+
 void
 ZHfstOspeller::read_zhfst(const string& filename)
   {
