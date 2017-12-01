@@ -115,7 +115,13 @@ bool find_alternatives(ZHfstOspeller& speller, size_t suggs) {
 				++i;
 			}
 			outputs.insert(buffer);
-			corrections.pop();
+
+            // hack, stops hfst-ospell-office from crashing
+            if (corrections.size() == 0) {
+                break;
+            } else {
+                corrections.pop();
+            }
 		}
 		std::cout << std::endl;
 		return true;
