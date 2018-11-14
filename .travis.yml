@@ -5,11 +5,11 @@ language: cpp
 addons:
   apt:
     packages:
-      - libxml++2.6-dev
       - libarchive-dev
+      - libpugixml-dev
 
 script:
   - autoreconf -fi
-  - ./configure --disable-static --enable-zhfst
+  - ./configure --enable-zhfst || { cat config.log && exit 1; }
   - make -j3
   - make -j1 check

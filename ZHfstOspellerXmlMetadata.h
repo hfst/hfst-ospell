@@ -26,25 +26,22 @@
 
 using std::map;
 
-#if HAVE_LIBXML
-#  include <libxml++/libxml++.h>
-#elif HAVE_TINYXML2
-#  include <tinyxml2.h>
+#if HAVE_PUGIXML
+#  include <pugixml.hpp>
 #endif
 
 #include "ospell.h"
 #include "hfst-ol.h"
 
 namespace hfst_ospell 
-  {
+{
     //! @brief data type for associating set of translations to languages.
     typedef std::map<std::string,std::string> LanguageVersions;
-
 
     //! @brief ZHfstOspellerInfo represents one info block of an zhfst file.
     //! @see https://victorio.uit.no/langtech/trunk/plan/proof/doc/lexfile-spec.xml
     struct ZHfstOspellerInfoMetadata
-      {
+    {
         //! @brief active locale of speller in BCP format
         std::string locale_;
         //! @brief transalation of titles to all languages
@@ -63,10 +60,11 @@ namespace hfst_ospell
         std::string email_;
         //! @brief web address of the speller
         std::string website_;
-      };
+    };
+
     //! @brief Represents one acceptor block in XML metadata
     struct ZHfstOspellerAcceptorMetadata
-      {
+    {
         //! @brief unique id of acceptor
         std::string id_;
         //! @brief descr part of acceptor
@@ -79,10 +77,11 @@ namespace hfst_ospell
         LanguageVersions title_;
         //! @brief descriptions of dictionary in languages
         LanguageVersions description_;
-      };
+    };
+
     //! @brief Represents one errmodel block in XML metadata
     struct ZHfstOspellerErrModelMetadata
-      {
+    {
         //! @brief id of each error model in set
         std::string id_;
         //! @brief descr part of each id
@@ -95,10 +94,11 @@ namespace hfst_ospell
         std::vector<std::string> type_; 
         //! @brief models
         std::vector<std::string> model_;
-      };
+    };
+
     //! @brief holds one index.xml metadata for whole ospeller
     class ZHfstOspellerXmlMetadata
-      {
+    {
         public:
         //! @brief construct metadata for undefined language and other default
         //!        values
@@ -115,57 +115,17 @@ namespace hfst_ospell
         //! shows linear serialisation of all header data in random order.
         std::string debug_dump() const;
 
-        public:
         ZHfstOspellerInfoMetadata info_; //!< The info node data
         //! @brief data for acceptor nodes
         std::map<std::string,ZHfstOspellerAcceptorMetadata> acceptor_; 
         //! @brief data for errmodel nodes
         std::vector<ZHfstOspellerErrModelMetadata> errmodel_;
-#if HAVE_LIBXML
-        private:
-        void parse_xml(const xmlpp::Document* doc);
-        void verify_hfstspeller(xmlpp::Node* hfstspellerNode);
-        void parse_info(xmlpp::Node* infoNode);
-        void parse_locale(xmlpp::Node* localeNode);
-        void parse_title(xmlpp::Node* titleNode);
-        void parse_description(xmlpp::Node* descriptionNode);
-        void parse_version(xmlpp::Node* versionNode);
-        void parse_date(xmlpp::Node* dateNode);
-        void parse_producer(xmlpp::Node* producerNode);
-        void parse_contact(xmlpp::Node* contactNode);
-        void parse_acceptor(xmlpp::Node* acceptorNode);
-        void parse_title(xmlpp::Node* titleNode, const std::string& accName);
-        void parse_description(xmlpp::Node* descriptionNode,
-                               const std::string& accName);
-        void parse_errmodel(xmlpp::Node* errmodelNode);
-        void parse_title(xmlpp::Node* titleNode, size_t errm_count);
-        void parse_description(xmlpp::Node* descriptionNode, size_t errm_count);
-        void parse_type(xmlpp::Node* typeNode, size_t errm_count);
-        void parse_model(xmlpp::Node* modelNode, size_t errm_count);
-#elif HAVE_TINYXML2
-        private:
-        void parse_xml(const tinyxml2::XMLDocument& doc);
-        void verify_hfstspeller(const tinyxml2::XMLElement& hfstspellerNode);
-        void parse_info(const tinyxml2::XMLElement& infoNode);
-        void parse_locale(const tinyxml2::XMLElement& localeNode);
-        void parse_title(const tinyxml2::XMLElement& titleNode);
-        void parse_description(const tinyxml2::XMLElement& descriptionNode);
-        void parse_version(const tinyxml2::XMLElement& versionNode);
-        void parse_date(const tinyxml2::XMLElement& dateNode);
-        void parse_producer(const tinyxml2::XMLElement& producerNode);
-        void parse_contact(const tinyxml2::XMLElement& contactNode);
-        void parse_acceptor(const tinyxml2::XMLElement& acceptorNode);
-        void parse_title(const tinyxml2::XMLElement& titleNode, const std::string& accName);
-        void parse_description(const tinyxml2::XMLElement& descriptionNode,
-                               const std::string& accName);
-        void parse_errmodel(const tinyxml2::XMLElement& errmodelNode);
-        void parse_title(const tinyxml2::XMLElement& titleNode, size_t errm_count);
-        void parse_description(const tinyxml2::XMLElement& descriptionNode, size_t errm_count);
-        void parse_type(const tinyxml2::XMLElement& typeNode, size_t errm_count);
-        void parse_model(const tinyxml2::XMLElement& modelNode, size_t errm_count);
 
+        private:
+#if HAVE_PUGIXML
+        void deserialize(pugi::xml_document& doc);
 #endif
-      };
+    };
 }
 
 #endif // inclusion GUARD
