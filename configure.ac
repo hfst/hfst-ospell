@@ -17,7 +17,7 @@
 
 # autoconf requirements
 AC_PREREQ([2.62])
-AC_INIT([hfstospell], [0.5.1], [hfst-bugs@helsinki.fi], [hfstospell], [http://hfst.github.io])
+AC_INIT([hfstospell], [0.5.2], [hfst-bugs@helsinki.fi], [hfstospell], [http://hfst.github.io])
 
 LT_PREREQ([2.2.6])
 
@@ -34,16 +34,14 @@ AC_CONFIG_HEADERS([config.h])
 HFSTOSPELL_NAME=hfstospell
 HFSTOSPELL_MAJOR=0
 HFSTOSPELL_MINOR=5
-HFSTOSPELL_EXTENSION=.1
+HFSTOSPELL_EXTENSION=.2
 HFSTOSPELL_VERSION=$HFSTOSPELL_MAJOR.$HFSTOSPELL_MINOR$HFSTOSPELL_EXTENSION
 AC_SUBST(HFSTOSPELL_MAJOR)
 AC_SUBST(HFSTOSPELL_MINOR)
 AC_SUBST(HFSTOSPELL_VERSION)
 AC_SUBST(HFSTOSPELL_NAME)
 
-# Check for pkg-config first - the configuration won't work if it isn't available:
-AC_PATH_PROG([PKGCONFIG], [pkg-config], [no])
-AS_IF([test "x$PKGCONFIG" = xno], [AC_MSG_ERROR([pkg-config is required - please install])])
+PKG_PROG_PKG_CONFIG
 AC_PATH_PROG([DOXYGEN], [doxygen], [false])
 AM_CONDITIONAL([CAN_DOXYGEN], [test "x$DOXYGEN" != xfalse])
 
