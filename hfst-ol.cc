@@ -177,8 +177,8 @@ void TransducerHeader::skip_hfst3_header(FILE * f)
             HFSTOSPELL_THROW_MESSAGE(HeaderParsingException,
                                "Found broken HFST3 header\n");
         }
-        char * headervalue = new char[remaining_header_len];
-        if (fread(headervalue, remaining_header_len, 1, f) != 1)
+        std::string headervalue(remaining_header_len, '\0');
+        if (fread(&headervalue[0], remaining_header_len, 1, f) != 1)
         {
             HFSTOSPELL_THROW_MESSAGE(HeaderParsingException,
                                "HFST3 header ended unexpectedly\n");
@@ -187,12 +187,10 @@ void TransducerHeader::skip_hfst3_header(FILE * f)
             HFSTOSPELL_THROW_MESSAGE(HeaderParsingException,
                                "Found broken HFST3 header\n");
         }
-        std::string header_tail(headervalue, remaining_header_len);
-        size_t type_field = header_tail.find("type");
+        auto type_field = headervalue.find("type");
         if (type_field != std::string::npos) {
-            if (header_tail.find("HFST_OL") != type_field + 5 &&
-                header_tail.find("HFST_OLW") != type_field + 5) {
-                delete[] headervalue;
+            if (headervalue.find("HFST_OL") != type_field + 5 &&
+                headervalue.find("HFST_OLW") != type_field + 5) {
                 HFSTOSPELL_THROW_MESSAGE(
                     TransducerTypeException,
                     "Transducer has incorrect type, should be "
@@ -809,7 +807,7 @@ void Encoder::read_input_symbol(const char * s, const int s_num)
         // If this is shadowed by an ascii symbol, unshadow
         ascii_symbols[(unsigned char)(*s)] = NO_SYMBOL;
     }
-    
+
     letters.add_string(s, static_cast<SymbolNumber>(s_num));
 }
 
