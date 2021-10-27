@@ -26,8 +26,7 @@
 	- With leading non-alphanumerics removed
 	- With trailing non-alphanumerics removed
 	- With leading and trailing non-alphanumerics removed
-	- Lower-case of all the above
-	- First-upper of all the above
+	- First-lower of all the above
 */
 
 #include <iostream>
@@ -224,49 +223,21 @@ bool is_valid_word(ZHfstOspeller& speller, const std::string& word, size_t suggs
 			bool valid = speller.spell(buffer);
 			it = valid_words.insert(std::make_pair(words[i].buffer,valid)).first;
 
-			if (!valid && !verbatim) {
-				// If the word was not valid, fold it to lower case and try again
-				buffer.clear();
-				ubuffer = words[i].buffer;
-				ubuffer.toLower();
-				ubuffer.toUTF8String(buffer);
-
-				// Add the lower case variant to the list so that we get suggestions using that, if need be
-				words[cw].start = words[i].start;
-				words[cw].count = words[i].count;
-				words[cw].buffer = ubuffer;
-				++cw;
-
-				// Don't try again if the lower cased variant has already been tried
-				valid_words_t::iterator itl = suggs ? valid_words.end() : valid_words.find(ubuffer);
-				if (itl != valid_words.end()) {
-					it->second = itl->second;
-					it = itl;
-				}
-				else {
-					valid = speller.spell(buffer);
-					it->second = valid; // Also mark the original mixed case variant as whatever the lower cased one was
-					it = valid_words.insert(std::make_pair(words[i].buffer,valid)).first;
-				}
-			}
-
-			if (!valid && !verbatim && (uc_all || uc_first)) {
-				// If the word was still not valid but had upper case, try a first-upper variant
+			if (!valid && !verbatim && uc_first) {
+				// If the word was not valid, try a first-lower variant
 				buffer.clear();
 				ubuffer.setTo(words[i].buffer, 0, 1);
-				ubuffer.toUpper();
-				uc_buffer.setTo(words[i].buffer, 1);
-				uc_buffer.toLower();
-				ubuffer.append(uc_buffer);
+				ubuffer.toLower();
+				ubuffer.append(words[i].buffer, 1, words[i].buffer.length() - 1);
 				ubuffer.toUTF8String(buffer);
 
-				// Add the first-upper variant to the list so that we get suggestions using that, if need be
+				// Add the first-lower case variant to the list so that we get suggestions using that, if need be
 				words[cw].start = words[i].start;
 				words[cw].count = words[i].count;
 				words[cw].buffer = ubuffer;
 				++cw;
 
-				// Don't try again if the first-upper variant has already been tried
+				// Don't try again if the first-lower variant has already been tried
 				valid_words_t::iterator itl = suggs ? valid_words.end() : valid_words.find(ubuffer);
 				if (itl != valid_words.end()) {
 					it->second = itl->second;
@@ -274,7 +245,7 @@ bool is_valid_word(ZHfstOspeller& speller, const std::string& word, size_t suggs
 				}
 				else {
 					valid = speller.spell(buffer);
-					it->second = valid; // Also mark the original mixed case variant as whatever the first-upper one was
+					it->second = valid; // Also mark the original mixed case variant as whatever the first-lower one was
 					it = valid_words.insert(std::make_pair(words[i].buffer,valid)).first;
 				}
 			}
