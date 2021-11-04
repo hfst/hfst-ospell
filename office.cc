@@ -30,6 +30,7 @@
 */
 
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <vector>
 #include <string>
@@ -41,6 +42,7 @@
 #include <cmath>
 #include <cerrno>
 #include <cctype>
+#include <getopt.h>
 
 #define U_CHARSET_IS_UTF8 1
 #include <unicode/uclean.h>
@@ -63,13 +65,17 @@ struct word_t {
 	UnicodeString buffer;
 };
 std::vector<word_t> words(16);
-std::string buffer;
+std::string buffer, wbuf;
 std::vector<std::string> alts;
 std::unordered_set<std::string> outputs;
 UnicodeString ubuffer, uc_buffer;
 size_t cw;
 
 bool verbatim = false;
+bool debug = false;
+hfst_ospell::Weight max_weight = -1.0;
+hfst_ospell::Weight beam = -1.0;
+float time_cutoff = 6.0;
 bool uc_first = false;
 bool uc_all = true;
 
@@ -81,7 +87,7 @@ bool find_alternatives(ZHfstOspeller& speller, size_t suggs) {
 	for (size_t k=0 ; k < cw && alts.size()<suggs ; ++k) {
 		buffer.clear();
 		words[k].buffer.toUTF8String(buffer);
-		hfst_ospell::CorrectionQueue corrections = speller.suggest(buffer);
+		auto corrections = speller.suggest(buffer);
 
 		if (corrections.size() == 0) {
 			continue;
@@ -89,6 +95,10 @@ bool find_alternatives(ZHfstOspeller& speller, size_t suggs) {
 
 		// Because speller.set_queue_limit() doesn't actually work, hard limit it here
 		for (size_t i=0, e=corrections.size() ; i<e && alts.size()<suggs ; ++i) {
+			// Work around https://github.com/hfst/hfst-ospell/issues/54
+			if (max_weight > 0.0 && corrections.top().second > max_weight) {
+				break;
+			}
 
 			buffer.clear();
 			if (k != 0) {
@@ -109,6 +119,12 @@ bool find_alternatives(ZHfstOspeller& speller, size_t suggs) {
 			}
 			if (k != 0) {
 				words[0].buffer.tempSubString(words[k].start + words[k].count).toUTF8String(buffer);
+			}
+
+			if (debug) {
+				wbuf.resize(64);
+				wbuf.resize(sprintf(&wbuf[0], " (%.2f)", corrections.top().second));
+				buffer += wbuf;
 			}
 
 			if (outputs.count(buffer) == 0) {
@@ -166,7 +182,7 @@ bool is_valid_word(ZHfstOspeller& speller, const std::string& word, size_t suggs
 	}
 
 	size_t ichStart = 0, cchUse = ubuffer.length();
-	const UChar *pwsz = ubuffer.getTerminatedBuffer();
+	auto pwsz = ubuffer.getTerminatedBuffer();
 
 	// Always test the full given input
 	words[0].buffer.remove();
@@ -215,7 +231,7 @@ bool is_valid_word(ZHfstOspeller& speller, const std::string& word, size_t suggs
 
 	for (size_t i=0, e=cw ; i<e ; ++i) {
 		// If we are looking for suggestions, don't use the cache
-		valid_words_t::iterator it = suggs ? valid_words.end() : valid_words.find(words[i].buffer);
+		auto it = suggs ? valid_words.end() : valid_words.find(words[i].buffer);
 
 		if (it == valid_words.end()) {
 			buffer.clear();
@@ -262,8 +278,13 @@ bool is_valid_word(ZHfstOspeller& speller, const std::string& word, size_t suggs
 int zhfst_spell(const char* zhfst_filename) {
 	ZHfstOspeller speller;
 	try {
+		if (debug) {
+			std::cout << "@@ Loading " << zhfst_filename << " with args max-weight=" << max_weight << ", beam=" << beam << ", time-cutoff=" << time_cutoff << std::endl;
+		}
 		speller.read_zhfst(zhfst_filename);
-		speller.set_time_cutoff(6.0);
+		speller.set_weight_limit(max_weight);
+		speller.set_beam(beam);
+		speller.set_time_cutoff(time_cutoff);
 	}
 	catch (hfst_ospell::ZHfstMetaDataParsingError zhmdpe) {
 		fprintf(stderr, "cannot finish reading zhfst archive %s:\n%s.\n", zhfst_filename, zhmdpe.what());
@@ -290,6 +311,38 @@ int zhfst_spell(const char* zhfst_filename) {
 		if (line.empty()) {
 			continue;
 		}
+
+		if (line.size() >= 5 && line[0] == '$' && line[1] == '$' && line[3] == ' ') {
+			if (line[2] == 'd' && isdigit(line[4]) && line.size() == 5) {
+				debug = (line[4] != '0');
+				std::cout << "@@ Option debug changed to " << debug << std::endl;
+				continue;
+			}
+			if (line[2] == 'T' && isdigit(line[4]) && line.size() == 5) {
+				verbatim = (line[4] != '0');
+				std::cout << "@@ Option verbatim changed to " << verbatim << std::endl;
+				continue;
+			}
+			if (line[2] == 'w' && isdigit(line[4])) {
+				max_weight = std::stof(&line[4]);
+				speller.set_weight_limit(max_weight);
+				std::cout << "@@ Option max-weight changed to " << max_weight << std::endl;
+				continue;
+			}
+			if (line[2] == 'b' && isdigit(line[4])) {
+				beam = std::stof(&line[4]);
+				speller.set_beam(beam);
+				std::cout << "@@ Option beam changed to " << beam << std::endl;
+				continue;
+			}
+			if (line[2] == 't' && isdigit(line[4])) {
+				time_cutoff = std::stof(&line[4]);
+				speller.set_time_cutoff(time_cutoff);
+				std::cout << "@@ Option time-cutoff changed to " << time_cutoff << std::endl;
+				continue;
+			}
+		}
+
 		// Just in case anyone decides to use the speller for a minor eternity
 		if (valid_words.size() > 20480) {
 			valid_words.clear();
@@ -316,6 +369,19 @@ int zhfst_spell(const char* zhfst_filename) {
     return EXIT_SUCCESS;
 }
 
+void print_help() {
+	std::cout
+		<< "Usage: hfst-ospell [options] zhfst-archive\n"
+		<< "\n"
+		<< " -h, --help            Shows this help\n"
+		<< " -d, --debug           Debug output with weights attached to results\n"
+		<< " -T, --verbatim        Disables case-folding and non-alphanumeric trimming\n"
+		<< " -w, --max-weight=W    Suppress corrections with weights above W\n"
+		<< " -b, --beam=W          Suppress corrections worse than best candidate by more than W\n"
+		<< " -t, --time-cutoff=T   Stop trying to find better corrections after T seconds; defaults to 6.0\n"
+		<< std::flush;
+}
+
 int main(int argc, char **argv) {
 	UErrorCode status = U_ZERO_ERROR;
 	u_init(&status);
@@ -327,22 +393,60 @@ int main(int argc, char **argv) {
 	ucnv_setDefaultName("UTF-8");
 	uloc_setDefault("en_US_POSIX", &status);
 
-	std::vector<std::string> args(argv, argv+argc);
-	for (std::vector<std::string>::iterator it=args.begin() ; it != args.end() ; ) {
-		if (*it == "--verbatim") {
-			verbatim = true;
-			it = args.erase(it);
+	struct option long_options[] =
+		{
+		{"help",         no_argument,       0, 'h'},
+		{"debug",        no_argument,       0, 'd'},
+		{"verbatim",     no_argument,       0, 'T'},
+		{"max-weight",   required_argument, 0, 'w'},
+		{"beam",         required_argument, 0, 'b'},
+		{"time-cutoff",  required_argument, 0, 't'},
+		{0,              0,                 0,  0 }
+		};
+
+	int c = 0;
+	while (true) {
+		int option_index = 0;
+		c = getopt_long(argc, argv, "hdTw:b:t:", long_options, &option_index);
+
+		if (c == -1) {
+			break;
 		}
-		else {
-			++it;
+
+		switch (c) {
+		case 'h':
+			print_help();
+			return EXIT_SUCCESS;
+
+		case 'd':
+			debug = true;
+			break;
+
+		case 'T':
+			verbatim = true;
+			break;
+
+		case 'w':
+			max_weight = std::stof(optarg);
+			break;
+
+		case 'b':
+			beam = std::stof(optarg);
+			break;
+
+		case 't':
+			time_cutoff = std::stof(optarg);
+			break;
 		}
 	}
 
-	if (args.size() < 2) {
+	if (optind >= argc) {
 		throw std::invalid_argument("Must pass a zhfst as argument");
 	}
 
-	int rv = zhfst_spell(args[1].c_str());
+	std::cerr << std::fixed << std::setprecision(2);
+	std::cout << std::fixed << std::setprecision(2);
+	int rv = zhfst_spell(argv[optind]);
 
 	u_cleanup();
 	return rv;
