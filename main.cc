@@ -1,19 +1,19 @@
 /*
-  
+
   Copyright 2009 University of Helsinki
-  
+
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
   You may obtain a copy of the License at
-  
+
   http://www.apache.org/licenses/LICENSE-2.0
-  
+
   Unless required by applicable law or agreed to in writing, software
   distributed under the License is distributed on an "AS IS" BASIS,
   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   See the License for the specific language governing permissions and
   limitations under the License.
-  
+
 */
 
 /*
@@ -165,7 +165,7 @@ void
 do_suggest(ZHfstOspeller& speller, const std::string& str)
   {
     hfst_ospell::CorrectionQueue corrections = speller.suggest(str);
-    if (corrections.size() > 0) 
+    if (corrections.size() > 0)
     {
         hfst_fprintf(stdout, "Corrections for \"%s\":\n", str.c_str());
         while (corrections.size() > 0)
@@ -181,7 +181,7 @@ do_suggest(ZHfstOspeller& speller, const std::string& str)
                         std::string::npos)
                       {
                         hfst_fprintf(stdout, "%s    %f    %s    "
-                                       "[DISCARDED BY ANALYSES]\n", 
+                                       "[DISCARDED BY ANALYSES]\n",
                                        corr.c_str(), corrections.top().second,
                                        anals.top().first.c_str());
                       }
@@ -203,8 +203,8 @@ do_suggest(ZHfstOspeller& speller, const std::string& str)
               }
             else
               {
-                hfst_fprintf(stdout, "%s    %f\n", 
-                                   corr.c_str(), 
+                hfst_fprintf(stdout, "%s    %f\n",
+                                   corr.c_str(),
                                    corrections.top().second);
               }
             corrections.pop();
@@ -222,7 +222,7 @@ do_suggest(ZHfstOspeller& speller, const std::string& str)
 void
 do_spell(ZHfstOspeller& speller, const std::string& str)
   {
-    if (speller.spell(str)) 
+    if (speller.spell(str))
       {
         hfst_fprintf(stdout, "\"%s\" is in the lexicon...\n",
                            str.c_str());
@@ -251,7 +251,7 @@ do_spell(ZHfstOspeller& speller, const std::string& str)
               }
             if (all_no_spell)
               {
-                hfst_fprintf(stdout, 
+                hfst_fprintf(stdout,
                              "All spellings were invalidated by analysis! "
                              ".:. Not in lexicon!\n");
               }
@@ -281,43 +281,33 @@ zhfst_spell(char* zhfst_filename)
     {
       speller.read_zhfst(zhfst_filename);
     }
-  catch (hfst_ospell::ZHfstMetaDataParsingError zhmdpe)
+  catch (hfst_ospell::ZHfstMetaDataParsingError& zhmdpe)
     {
-      hfst_fprintf(stderr, "cannot finish reading zhfst archive %s:\n%s.\n", 
+      hfst_fprintf(stderr, "cannot finish reading zhfst archive %s:\n%s.\n",
                          zhfst_filename, zhmdpe.what());
-      //std::cerr << "cannot finish reading zhfst archive " << zhfst_filename <<
-      //             ":\n" << zhmdpe.what() << "." << std::endl;
       return EXIT_FAILURE;
     }
-  catch (hfst_ospell::ZHfstZipReadingError zhzre)
+  catch (hfst_ospell::ZHfstZipReadingError& zhzre)
     {
-      //std::cerr << "cannot read zhfst archive " << zhfst_filename << ":\n" 
-      //    << zhzre.what() << "." << std::endl
-      //    << "trying to read as legacy automata directory" << std::endl;
-      hfst_fprintf(stderr, 
+      hfst_fprintf(stderr,
                          "cannot read zhfst archive %s:\n"
                          "%s.\n",
                          zhfst_filename, zhzre.what());
       return EXIT_FAILURE;
     }
-  catch (hfst_ospell::ZHfstXmlParsingError zhxpe)
+  catch (hfst_ospell::ZHfstXmlParsingError& zhxpe)
     {
-      //std::cerr << "Cannot finish reading index.xml from " 
-      //  << zhfst_filename << ":" << std::endl
-      //  << zhxpe.what() << "." << std::endl;
-      hfst_fprintf(stderr, 
+      hfst_fprintf(stderr,
                          "Cannot finish reading index.xml from %s:\n"
-                         "%s.\n", 
+                         "%s.\n",
                          zhfst_filename, zhxpe.what());
       return EXIT_FAILURE;
     }
   if (verbose)
     {
-      //std::cout << "Following metadata was read from ZHFST archive:" << std::endl
-      //          << speller.metadata_dump() << std::endl;
-      hfst_fprintf(stdout, 
+      hfst_fprintf(stdout,
                          "Following metadata was read from ZHFST archive:\n"
-                         "%s\n", 
+                         "%s\n",
                          speller.metadata_dump().c_str());
     }
   speller.set_queue_limit(suggs);
@@ -354,7 +344,7 @@ zhfst_spell(char* zhfst_filename)
         std::string linestr = wide_string_to_string(wstr);
         free(str);
         str = strdup(linestr.c_str());
-#else    
+#else
     while (!std::cin.eof()) {
         std::cin.getline(str, 2000);
 #endif
@@ -398,7 +388,7 @@ int
           hfst_fprintf(stdout, "Not printing suggestions worse than best by margin %f\n", suggs);
       }
       char * str = (char*) malloc(2000);
-      
+
 #ifdef WINDOWS
     SetConsoleCP(65001);
     const HANDLE stdIn = GetStdHandle(STD_INPUT_HANDLE);
@@ -410,7 +400,7 @@ int
         std::string linestr = wide_string_to_string(wstr);
         free(str);
         str = strdup(linestr.c_str());
-#else    
+#else
     while (!std::cin.eof()) {
         std::cin.getline(str, 2000);
 #endif
@@ -435,11 +425,11 @@ int
 
 int main(int argc, char **argv)
 {
-    
+
+
+#if HAVE_GETOPT_H
     int c;
     //std::locale::global(std::locale(""));
-  
-#if HAVE_GETOPT_H
     while (true) {
         static struct option long_options[] =
             {
@@ -463,7 +453,7 @@ int main(int argc, char **argv)
 #endif
             {0,              0,                 0,  0 }
             };
-          
+
         int option_index = 0;
         c = getopt_long(argc, argv, "hVvqsan:w:b:t:SXm:l:k", long_options, &option_index);
         char* endptr = 0;
@@ -476,17 +466,17 @@ int main(int argc, char **argv)
             print_usage();
             return EXIT_SUCCESS;
             break;
-          
+
         case 'V':
             print_version();
             return EXIT_SUCCESS;
             break;
-          
+
         case 'v':
             verbose = true;
             quiet = false;
             break;
-          
+
         case 'q': // fallthrough
         case 's':
             quiet = true;
@@ -550,7 +540,7 @@ int main(int argc, char **argv)
         case 'k':
             output_to_console = true;
             break;
-#endif 
+#endif
         case 'S':
             suggest = true;
             break;

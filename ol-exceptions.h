@@ -4,6 +4,7 @@
 #include "hfstol-stdafx.h"
 #include <string>
 #include <sstream>
+#include <cstring>
 
 namespace hfst_ospell
 {
@@ -21,7 +22,7 @@ struct OspellException
     size_t line;      //!< line number of exception
 
     OspellException(void) {}
-   
+
 //!
 //! construct exception with name, file and location
     OspellException(const std::string &name,const std::string &file,size_t line):
@@ -29,7 +30,7 @@ struct OspellException
     file(file),
     line(line)
     {}
-    
+
     //!
     //! create string representation of exception for output
     std::string operator() (void) const
@@ -45,7 +46,7 @@ struct OspellException
       {
         std::ostringstream o;
         o << file << ":" << line << ":" << name;
-        return o.str().c_str();
+        return strdup(o.str().c_str());
       }
 };
 
@@ -59,7 +60,7 @@ struct OspellException
 #define HFSTOSPELL_EXCEPTION_CHILD_DECLARATION(CHILD) \
     struct CHILD : public OspellException \
     { CHILD(const std::string &name,const std::string &file,size_t line):\
-    OspellException(name,file,line) {}} 
+    OspellException(name,file,line) {}}
 
 #define HFST_CATCH(E)                           \
     catch (const E &e)                          \
