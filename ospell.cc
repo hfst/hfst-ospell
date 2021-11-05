@@ -152,31 +152,31 @@ TreeNode TreeNode::update(SymbolNumber symbol,
 bool TreeNode::try_compatible_with(FlagDiacriticOperation op)
 {
     switch (op.Operation()) {
-    
+
     case P: // positive set
         flag_state[op.Feature()] = op.Value();
         return true;
-    
+
     case N: // negative set (literally, in this implementation)
         flag_state[op.Feature()] = -1*op.Value();
         return true;
-    
+
     case R: // require
         if (op.Value() == 0) { // "plain" require, return false if unset
             return (flag_state[op.Feature()] != 0);
         }
         return (flag_state[op.Feature()] == op.Value());
-    
+
     case D: // disallow
         if (op.Value() == 0) { // "plain" disallow, return true if unset
             return (flag_state[op.Feature()] == 0);
         }
         return (flag_state[op.Feature()] != op.Value());
-      
+
     case C: // clear
         flag_state[op.Feature()] = 0;
         return true;
-      
+
     case U: // unification
         /* if the feature is unset OR the feature is to this value already OR
            the feature is negatively set to something else than this value */
@@ -190,7 +190,7 @@ bool TreeNode::try_compatible_with(FlagDiacriticOperation op)
         }
         return false;
     }
-    
+
     return false; // to make the compiler happy
 }
 
@@ -204,7 +204,11 @@ Speller::Speller(Transducer* mutator_ptr, Transducer* lexicon_ptr):
         alphabet_translator(SymbolVector()),
         operations(lexicon->get_operations()),
         limiting(None),
-        mode(Correct)
+        mode(Correct),
+        max_time(-1.0),
+        start_clock(0),
+        call_counter(0),
+        limit_reached(false)
             {
                 if (mutator != NULL) {
                     build_alphabet_translator();
@@ -228,7 +232,7 @@ void Speller::lexicon_epsilons(void)
     }
     TransitionTableIndex next = lexicon->next(next_node.lexicon_state, 0);
     STransition i_s = lexicon->take_epsilons_and_flags(next);
-    
+
     while (i_s.symbol != NO_SYMBOL) {
         if (is_under_weight_limit(next_node.weight + i_s.weight)) {
             if (lexicon->transitions.input_symbol(next) == 0) {
@@ -326,7 +330,7 @@ void Speller::mutator_epsilons(void)
     }
     TransitionTableIndex next_m = mutator->next(next_node.mutator_state, 0);
     STransition mutator_i_s = mutator->take_epsilons(next_m);
-   
+
     while (mutator_i_s.symbol != NO_SYMBOL) {
         if (mutator_i_s.symbol == 0) {
             if (is_under_weight_limit(
@@ -460,12 +464,12 @@ bool Transducer::initialize_input_vector(SymbolVector & input_vector,
                                          char * line)
 {
     input_vector.clear();
-    SymbolNumber k = NO_SYMBOL;
+    //SymbolNumber k = NO_SYMBOL;
     char ** inpointer = &line;
-    char * oldpointer;
+    //char * oldpointer;
     while (**inpointer != '\0') {
-        oldpointer = *inpointer;
-        k = encoder->find_key(inpointer);
+        //oldpointer = *inpointer;
+        SymbolNumber k = encoder->find_key(inpointer);
         if (k == NO_SYMBOL) { // no tokenization from alphabet
             // for real handling of other and identity for unseen symbols,
             // use the Speller interface analyse()!
@@ -532,18 +536,18 @@ AnalysisQueue Transducer::lookup(char * line)
                 i_s = take_epsilons_and_flags(next_index);
             }
         }
-        
+
         // input consumption loop
         unsigned int input_state = next_node.input_state;
         if (input_state < input.size() &&
             has_transitions(
                 next_node.lexicon_state + 1, input[input_state])) {
-            
+
             next_index = next(next_node.lexicon_state,
                               input[input_state]);
             STransition i_s = take_non_epsilons(next_index,
                                                 input[input_state]);
-            
+
             while (i_s.symbol != NO_SYMBOL) {
                 queue.push_back(next_node.update(
                                     i_s.symbol,
@@ -551,18 +555,18 @@ AnalysisQueue Transducer::lookup(char * line)
                                     next_node.mutator_state,
                                     i_s.index,
                                     i_s.weight));
-                
+
                 ++next_index;
                 i_s = take_non_epsilons(next_index, input[input_state]);
             }
         }
-        
+
     }
-    
+
     for (auto& it : outputs) {
         analyses.push(StringWeightPair(it.first, it.second));
     }
-    
+
     return analyses;
 }
 
@@ -729,7 +733,7 @@ Weight Transducer::final_weight(const TransitionTableIndex i) const
 bool
 Transducer::is_flag(const SymbolNumber symbol)
 {
-    return alphabet.is_flag(symbol); 
+    return alphabet.is_flag(symbol);
 }
 
 bool
@@ -1201,7 +1205,7 @@ void Speller::add_symbol_to_alphabet_translator(SymbolNumber to_sym)
 }
 
 } // namespace hfst_ospell
-  
+
 char*
 hfst_strndup(const char* s, size_t n)
   {
