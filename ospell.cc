@@ -464,11 +464,8 @@ bool Transducer::initialize_input_vector(SymbolVector & input_vector,
                                          char * line)
 {
     input_vector.clear();
-    //SymbolNumber k = NO_SYMBOL;
     char ** inpointer = &line;
-    //char * oldpointer;
     while (**inpointer != '\0') {
-        //oldpointer = *inpointer;
         SymbolNumber k = encoder->find_key(inpointer);
         if (k == NO_SYMBOL) { // no tokenization from alphabet
             // for real handling of other and identity for unseen symbols,
@@ -892,7 +889,7 @@ CorrectionQueue Speller::correct(char * line, int nbest,
     std::map<std::string, Weight> corrections;
     SymbolNumber first_input = (input.size() == 0) ? 0 : input[0];
     if (cache[first_input].empty) {
-        build_cache(first_input);
+        build_cache(first_input); // XXX: cache corrupts limit!
     }
     if (input.size() <= 1) {
         // get the cached results and we're done
@@ -912,6 +909,7 @@ CorrectionQueue Speller::correct(char * line, int nbest,
                     }
                 }
             }
+        set_limiting_behaviour(nbest, maxweight, beam);
         adjust_weight_limits(nbest, beam);
         for(auto& it : *results) {
               // Then collect the results
@@ -950,6 +948,7 @@ CorrectionQueue Speller::correct(char * line, int nbest,
         */
         next_node = queue.back();
         queue.pop_back();
+        set_limiting_behaviour(nbest, maxweight, beam); // XXX: need to reset
         adjust_weight_limits(nbest, beam);
         // if we can't get an acceptable result, never mind
         if (next_node.weight > limit) {
@@ -1035,12 +1034,16 @@ void Speller::set_limiting_behaviour(int nbest, Weight maxweight, Weight beam)
         limiting = Nbest;
     } else if (maxweight < 0.0 && nbest == 0 && beam >= 0.0) {
         limiting = Beam;
+    } else {
+        return;
     }
 }
 
 void Speller::adjust_weight_limits(int nbest, Weight beam)
 {
-    if (limiting == Nbest && nbest_queue.size() >= nbest) {
+    if (limiting == MaxWeight) {
+        return;
+    } else if (limiting == Nbest && nbest_queue.size() >= nbest) {
         limit = nbest_queue.get_highest();
     } else if (limiting == MaxWeightNbest && nbest_queue.size() >= nbest) {
         limit = std::min(limit, nbest_queue.get_lowest());
