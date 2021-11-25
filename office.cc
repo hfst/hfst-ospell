@@ -21,7 +21,7 @@
 */
 
 /*
-	Tests up to 16 variations of each input token:
+	Tests up to 8 variations of each input token:
 	- Verbatim
 	- With leading non-alphanumerics removed
 	- With trailing non-alphanumerics removed
@@ -66,7 +66,8 @@ struct word_t {
 };
 std::vector<word_t> words(16);
 std::string buffer, wbuf;
-std::vector<std::string> alts;
+using Alt = std::pair<double,std::string>;
+std::vector<Alt> alts;
 std::unordered_set<std::string> outputs;
 UnicodeString ubuffer, uc_buffer;
 size_t cw;
@@ -93,12 +94,12 @@ bool find_alternatives(ZHfstOspeller& speller, size_t suggs) {
 			continue;
 		}
 
-		// Because speller.set_queue_limit() doesn't actually work, hard limit it here
-		for (size_t i=0, e=corrections.size() ; i<e && alts.size()<suggs ; ++i) {
+		for (size_t i=0, e=corrections.size() ; i<e ; ++i) {
 			// Work around https://github.com/hfst/hfst-ospell/issues/54
 			if (max_weight > 0.0 && corrections.top().second > max_weight) {
 				break;
 			}
+			auto w = corrections.top().second * (1.0 + k/10.0);
 
 			buffer.clear();
 			if (k != 0) {
@@ -123,12 +124,16 @@ bool find_alternatives(ZHfstOspeller& speller, size_t suggs) {
 
 			if (debug) {
 				wbuf.resize(64);
-				wbuf.resize(sprintf(&wbuf[0], " (%.2f)", corrections.top().second));
+				wbuf.resize(sprintf(&wbuf[0], " (%.2f;%zu)", corrections.top().second, k));
 				buffer += wbuf;
 			}
 
 			if (outputs.count(buffer) == 0) {
-				alts.push_back(buffer);
+				alts.push_back({w, buffer});
+				std::sort(alts.begin(), alts.end());
+				while (alts.size() > suggs) {
+					alts.pop_back();
+				}
 			}
 			outputs.insert(buffer);
 			corrections.pop();
@@ -138,7 +143,7 @@ bool find_alternatives(ZHfstOspeller& speller, size_t suggs) {
 	if (!alts.empty()) {
 		std::cout << "&";
 		for (auto& alt : alts) {
-			std::cout << "\t" << alt;
+			std::cout << "\t" << alt.second;
 		}
 		std::cout << std::endl;
 		return true;
