@@ -888,7 +888,7 @@ CorrectionQueue Speller::correct(char * line, int nbest,
     // A placeholding map, only one weight per correction
     std::map<std::string, Weight> corrections;
     SymbolNumber first_input = (input.size() == 0) ? 0 : input[0];
-    if (cache[first_input].empty) {
+    if (false) { // if (cache[first_input].empty) {
         build_cache(first_input); // XXX: cache corrupts limit!
     }
     if (input.size() <= 1) {
