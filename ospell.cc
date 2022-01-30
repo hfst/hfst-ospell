@@ -1008,7 +1008,7 @@ CorrectionQueue Speller::correct(char * line, int nbest,
             }
         }
     }
-    cache[first_input].clear();
+    //cache[first_input].clear();
     return correction_queue;
 }
 
