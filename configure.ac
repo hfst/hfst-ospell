@@ -17,7 +17,7 @@
 
 # autoconf requirements
 AC_PREREQ([2.62])
-AC_INIT([hfstospell], [0.5.2], [hfst-bugs@helsinki.fi], [hfstospell], [http://hfst.github.io])
+AC_INIT([hfstospell], [0.5.3], [hfst-bugs@helsinki.fi], [hfstospell], [http://hfst.github.io])
 
 LT_PREREQ([2.2.6])
 
@@ -34,7 +34,7 @@ AC_CONFIG_HEADERS([config.h])
 HFSTOSPELL_NAME=hfstospell
 HFSTOSPELL_MAJOR=0
 HFSTOSPELL_MINOR=5
-HFSTOSPELL_EXTENSION=.2
+HFSTOSPELL_EXTENSION=.3
 HFSTOSPELL_VERSION=$HFSTOSPELL_MAJOR.$HFSTOSPELL_MINOR$HFSTOSPELL_EXTENSION
 AC_SUBST(HFSTOSPELL_MAJOR)
 AC_SUBST(HFSTOSPELL_MINOR)
