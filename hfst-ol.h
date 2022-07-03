@@ -28,6 +28,7 @@
 #include <climits>
 #include <cstdio>
 #include <cstdlib>
+#include <cstdint>
 #include <iostream>
 #include <cstring>
 #include <set>
