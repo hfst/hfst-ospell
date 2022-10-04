@@ -164,6 +164,10 @@ bool print_short_help(void)
 void
 do_suggest(ZHfstOspeller& speller, const std::string& str)
   {
+    if (verbose)
+      {
+        hfst_fprintf(stdout, "Suggesting for %s:\n", str.c_str());
+      }
     hfst_ospell::CorrectionQueue corrections = speller.suggest(str);
     if (corrections.size() > 0)
     {
