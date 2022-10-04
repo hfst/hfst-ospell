@@ -17,7 +17,7 @@
 
 # autoconf requirements
 AC_PREREQ([2.62])
-AC_INIT([hfstospell], [0.5.3], [hfst-bugs@helsinki.fi], [hfstospell], [http://hfst.github.io])
+AC_INIT([hfstospell],[0.5.3],[hfst-bugs@helsinki.fi],[hfstospell],[http://hfst.github.io])
 
 LT_PREREQ([2.2.6])
 
@@ -89,7 +89,7 @@ AS_IF([test "x$with_extract" = xmem], [AC_DEFINE([ZHFST_EXTRACT_TO_MEM], [1],
 m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
 AC_PROG_CC
 AC_PROG_CXX
-AC_LIBTOOL_WIN32_DLL
+
 LT_INIT
 AC_PROG_INSTALL
 AC_PROG_LN_S
