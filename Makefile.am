@@ -27,8 +27,12 @@ endif # EXTRA_DEMOS
 if HFST_OSPELL_OFFICE
 MAYBE_HFST_OSPELL_OFFICE=hfst-ospell-office
 endif # HFST_OSPELL_OFFICE
+if HFST_OSPELL_PREDICT
+MAYBE_HFST_OSPELL_PREDICT=hfst-ospell-predict
+endif
 
-bin_PROGRAMS=hfst-ospell $(MAYBE_HFST_OSPELL_OFFICE) $(CONFERENCE_DEMOS)
+bin_PROGRAMS=hfst-ospell $(MAYBE_HFST_OSPELL_OFFICE) $(CONFERENCE_DEMOS) \
+			 $(MAYBE_HFST_OSPELL_PREDICT)
 lib_LTLIBRARIES=libhfstospell.la
 man1_MANS=hfst-ospell.1 hfst-ospell-office.1
 
@@ -62,6 +66,13 @@ hfst_ospell_SOURCES=main.cc
 hfst_ospell_LDADD=libhfstospell.la
 hfst_ospell_CXXFLAGS=$(AM_CXXFLAGS) $(CXXFLAGS) \
 					 $(PKG_CXXFLAGS)
+
+if HFST_OSPELL_PREDICT
+hfst_ospell_predict_SOURCES=predict.cc
+hfst_ospell_predict_LDADD=libhfstospell.la
+hfst_ospell_predict_CXXFLAGS=$(AM_CXXFLAGS) $(CXXFLAGS) \
+					 $(PKG_CXXFLAGS)
+endif
 
 if HFST_OSPELL_OFFICE
 

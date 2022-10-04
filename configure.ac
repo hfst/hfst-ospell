@@ -56,6 +56,11 @@ AC_ARG_ENABLE([hfst_ospell_office],
                               [build hfst-ospell-office @<:@default=yes@:>@])],
               [enable_hfst_ospell_ofiice=$enableval], [enable_hfst_ospell_office=yes])
 AM_CONDITIONAL([HFST_OSPELL_OFFICE], [test x$enable_hfst_ospell_office != xno])
+AC_ARG_ENABLE([hfst_ospell_predict],
+              [AS_HELP_STRING([--enable-hfst-ospell-predict],
+                              [build hfst-ospell-predict @<:@default=yes@:>@])],
+              [enable_hfst_ospell_ofiice=$enableval], [enable_hfst_ospell_predict=yes])
+AM_CONDITIONAL([HFST_OSPELL_PREDICT], [test x$enable_hfst_ospell_predict != xno])
 AC_ARG_ENABLE([zhfst],
               [AS_HELP_STRING([--enable-zhfst],
                               [support zipped complex automaton sets @<:@default=check@:>@])],
