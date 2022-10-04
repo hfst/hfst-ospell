@@ -74,9 +74,11 @@ wide_string_to_string(const std::wstring &wstr)
 #endif
 
 // C++20, https://stackoverflow.com/a/2072890/4109773
-inline bool ends_with(std::string const & value, std::string const & ending)
+inline bool
+ends_with(std::string const &value, std::string const &ending)
 {
-    if (ending.size() > value.size()) return false;
+    if (ending.size() > value.size())
+        return false;
     return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
 }
 
@@ -170,8 +172,7 @@ print_usage(void)
 bool
 print_version(void)
 {
-    std::cout << "\n"
-              PACKAGE_STRING << std::endl
+    std::cout << "\n" PACKAGE_STRING << std::endl
               << "copyright (C) 2009 - 2022 University of Helsinki\n";
     return true;
 }
@@ -230,18 +231,19 @@ do_predict(ZHfstOspeller &speller, const std::string &str)
             }
             else
             {
-                if ((!continuation_marker.empty()) &&
-                    (ends_with(corr, continuation_marker))) {
-                    std::string chomped = corr.substr(0, corr.size() -
-                                                 continuation_marker.size());
-                    hfst_fprintf(stdout, "%s    %f    (continuation %s)\n",
-                                 corr.c_str(), corrections.top().second,
+                if ((!continuation_marker.empty())
+                    && (ends_with(corr, continuation_marker)))
+                {
+                    std::string chomped = corr.substr(
+                        0, corr.size() - continuation_marker.size());
+                    hfst_fprintf(stdout, "%s...    %f    (continuation %s)\n",
+                                 chomped.c_str(), corrections.top().second,
                                  continuation_marker.c_str());
                 }
                 else
                 {
                     hfst_fprintf(stdout, "%s    %f\n", corr.c_str(),
-                             corrections.top().second);
+                                 corrections.top().second);
                 }
             }
             corrections.pop();
@@ -356,11 +358,16 @@ zhfst_spell(char *zhfst_filename)
                      beam);
     }
     speller.set_time_cutoff(time_cutoff);
-    if (time_cutoff >= 0.0 && verbose)
+    if (time_cutoff > 0.0 && verbose)
     {
         hfst_fprintf(
             stdout, "Not trying to find better predictions after %f seconds\n",
             time_cutoff);
+    }
+    if ((!continuation_marker.empty()) && verbose)
+    {
+        hfst_fprintf(stdout, "%s marks incomplete words\n",
+                     continuation_marker.c_str());
     }
     char *str = (char *)malloc(2000);
 
@@ -494,7 +501,7 @@ main(int argc, char **argv)
               };
 
         int option_index = 0;
-        c = getopt_long(argc, argv, "hVvqsan:w:b:t:SXm:l:k", long_options,
+        c = getopt_long(argc, argv, "hVvqsan:w:b:t:SXm:l:kC:", long_options,
                         &option_index);
         char *endptr = 0;
 
@@ -587,6 +594,9 @@ main(int argc, char **argv)
             break;
         case 'l':
             lexicon_filename = optarg;
+            break;
+        case 'C':
+            continuation_marker = optarg;
             break;
         default:
             std::cerr << "Invalid option\n\n";
