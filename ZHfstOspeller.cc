@@ -58,7 +58,7 @@ inline std::string extract_to_mem(archive* ar, archive_entry* entry) {
 
     std::string buff(buffsize, 0);
     for (;;) {
-        ssize_t curr = archive_read_data(ar, &buff[0] + full_length, buffsize - full_length);
+        auto curr = archive_read_data(ar, &buff[0] + full_length, buffsize - full_length);
         if (0 == curr) {
             break;
         }
