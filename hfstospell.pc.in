@@ -5,6 +5,6 @@ includedir=@includedir@
 
 Name: hfstospell
 Description: Finite-state transducer based spell checker library
-Version: @HFSTOSPELL_VERSION@
-Libs: -L${libdir} -l@HFSTOSPELL_NAME@
+Version: @VERSION@
+Libs: -L${libdir} -lhfstospell
 Cflags: -I${includedir}
