@@ -59,9 +59,9 @@ uint16_t read_uint16_flipping_endianness(FILE * f)
 uint16_t read_uint16_flipping_endianness(char * raw)
 {
     uint16_t result = 0;
-    result |= *(raw + 1);
+    result |= static_cast<uint8_t>(*(raw + 1));
     result <<= 8;
-    result |= *raw;
+    result |= static_cast<uint8_t>(*raw);
     return result;
 }
 
@@ -85,13 +85,13 @@ uint32_t read_uint32_flipping_endianness(FILE * f)
 uint32_t read_uint32_flipping_endianness(char * raw)
 {
     uint32_t result = 0;
-    result |= *(raw + 3);
+    result |= static_cast<uint8_t>(*(raw + 3));
     result <<= 8;
-    result |= *(raw + 2);
+    result |= static_cast<uint8_t>(*(raw + 2));
     result <<= 8;
-    result |= *(raw + 1);
+    result |= static_cast<uint8_t>(*(raw + 1));
     result <<= 8;
-    result |= *raw;
+    result |= static_cast<uint8_t>(*raw);
     return result;
 }
 
