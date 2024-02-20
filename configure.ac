@@ -17,7 +17,7 @@
 
 # autoconf requirements
 AC_PREREQ([2.62])
-AC_INIT([hfstospell],[0.5.3],[hfst-bugs@helsinki.fi],[hfstospell],[http://hfst.github.io])
+AC_INIT([hfstospell],[0.5.4],[hfst-bugs@helsinki.fi],[hfstospell],[http://hfst.github.io])
 
 LT_PREREQ([2.2.6])
 
@@ -34,7 +34,7 @@ AC_CONFIG_HEADERS([config.h])
 HFSTOSPELL_NAME=hfstospell
 HFSTOSPELL_MAJOR=0
 HFSTOSPELL_MINOR=5
-HFSTOSPELL_EXTENSION=.3
+HFSTOSPELL_EXTENSION=.4
 HFSTOSPELL_VERSION=$HFSTOSPELL_MAJOR.$HFSTOSPELL_MINOR$HFSTOSPELL_EXTENSION
 AC_SUBST(HFSTOSPELL_MAJOR)
 AC_SUBST(HFSTOSPELL_MINOR)
@@ -54,12 +54,12 @@ AM_CONDITIONAL([EXTRA_DEMOS], [test x$enable_extra_demos != xno])
 AC_ARG_ENABLE([hfst_ospell_office],
               [AS_HELP_STRING([--enable-hfst-ospell-office],
                               [build hfst-ospell-office @<:@default=yes@:>@])],
-              [enable_hfst_ospell_ofiice=$enableval], [enable_hfst_ospell_office=yes])
+              [enable_hfst_ospell_office=$enableval], [enable_hfst_ospell_office=yes])
 AM_CONDITIONAL([HFST_OSPELL_OFFICE], [test x$enable_hfst_ospell_office != xno])
 AC_ARG_ENABLE([hfst_ospell_predict],
               [AS_HELP_STRING([--enable-hfst-ospell-predict],
                               [build hfst-ospell-predict @<:@default=yes@:>@])],
-              [enable_hfst_ospell_ofiice=$enableval], [enable_hfst_ospell_predict=yes])
+              [enable_hfst_ospell_predict=$enableval], [enable_hfst_ospell_predict=yes])
 AM_CONDITIONAL([HFST_OSPELL_PREDICT], [test x$enable_hfst_ospell_predict != xno])
 AC_ARG_ENABLE([zhfst],
               [AS_HELP_STRING([--enable-zhfst],
@@ -151,17 +151,17 @@ AC_CHECK_FUNCS([strndup error])
 
 # Require highest supported C++ standard
 AC_LANG(C++)
-AX_CHECK_COMPILE_FLAG([-std=c++20], [CXXFLAGS="$CXXFLAGS -std=c++20"], [
- AX_CHECK_COMPILE_FLAG([-std=c++2a], [CXXFLAGS="$CXXFLAGS -std=c++2a"], [
-  AX_CHECK_COMPILE_FLAG([-std=c++17], [CXXFLAGS="$CXXFLAGS -std=c++17"], [
-   AX_CHECK_COMPILE_FLAG([-std=c++1z], [CXXFLAGS="$CXXFLAGS -std=c++1z"], [
-    AX_CHECK_COMPILE_FLAG([-std=c++14], [CXXFLAGS="$CXXFLAGS -std=c++14"], [
-     AX_CHECK_COMPILE_FLAG([-std=c++1y], [CXXFLAGS="$CXXFLAGS -std=c++1y"], [
-      AC_MSG_ERROR([Could not enable at least C++1y (C++14) - upgrade your compiler])
-     ])
-    ])
-   ])
-  ])
+AX_CHECK_COMPILE_FLAG([-std=c++23], [CXXFLAGS="$CXXFLAGS -std=c++23"], [
+ AX_CHECK_COMPILE_FLAG([-std=c++2b], [CXXFLAGS="$CXXFLAGS -std=c++2b"], [
+		AX_CHECK_COMPILE_FLAG([-std=c++20], [CXXFLAGS="$CXXFLAGS -std=c++20"], [
+			AX_CHECK_COMPILE_FLAG([-std=c++2a], [CXXFLAGS="$CXXFLAGS -std=c++2a"], [
+				AX_CHECK_COMPILE_FLAG([-std=c++17], [CXXFLAGS="$CXXFLAGS -std=c++17"], [
+					AX_CHECK_COMPILE_FLAG([-std=c++1z], [CXXFLAGS="$CXXFLAGS -std=c++1z"], [
+						AC_MSG_ERROR([Could not enable at least C++1z (C++17) - upgrade your compiler])
+					])
+				])
+			])
+		])
  ])
 ])
 
